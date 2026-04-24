@@ -1,19 +1,26 @@
 ---
 name: html-report
 description: >
-  GL.iNet 数据组的 HTML 报告标准模板与设计系统。用于生成老板报告、季度/月度复盘、广告复盘、
-  数据分析报告、专项分析、内部 HTML 报告等正式产出。基于 reports/boss_report_2026Q1/index.html
-  沉淀而成，统一使用"黄昏绮景"7 色调色板（来源：`References/IMG_8521.JPG` · 科研Sci配色）、
-  Plus Jakarta Sans + Noto Sans SC 字体栈、ECharts v5 图表、响应式布局。
+  GL.iNet 数据组内部 HTML 报告模板与设计系统（黄昏绮景 7 色调色板 · Plus Jakarta Sans +
+  Noto Sans SC 字体栈 · ECharts v5 · 响应式布局）。
 
-  当用户提到以下任意场景时，必须使用这个 skill，不要自创样式：
-  老板报告 / boss report / 数据组报告 / 季度复盘 / 月度复盘 / Q1 / Q2 / Q3 / Q4 报告 /
-  广告复盘 / 销售复盘 / HTML 报告 / 内部报告 / 数据分析报告 / 组内标准报告 /
-  按老板报告模板写 / 用组内模板 / 做一份 XX 报告 / 写一份 HTML 报告 /
-  generate report / write a report / create a dashboard report.
+  仅在以下两种情况触发，否则不要加载：
 
-  即使用户没有明确说"用模板"，只要是要生成正式的内部数据分析 HTML 产出，就加载此 skill。
-  不要手搓样式、不要用其他图表库、不要改调色板。
+  1. 用户显式调用 slash / @ 命令：/html-report、@html-report、/skill html-report
+  2. 用户明确要求生成 .html 格式的正式报告：
+     - "写一份 HTML 报告"、"生成 HTML 报告"、"做个 HTML 的 XX 报告"
+     - "用组内 HTML 模板"、"按老板报告 HTML 模板写"
+     - "做一个 index.html 的 XX 复盘"
+     - 英文：write an HTML report / generate HTML dashboard report
+
+  以下情况**不要触发**（让用户先明确输出格式）：
+  - 只提到"复盘 / 报告 / 分析 / 总结"但没说 HTML —— 用户可能想要 markdown、.docx、
+    .pptx、纯文本、邮件摘要、Notion、飞书文档，这些本 skill 都不负责
+  - 只是做数据分析、SQL 查询、数据解读，不需要落盘为 HTML
+  - 读取或解析已有的 HTML 文件（那是 HTML 解析，不是生成）
+  - 用户问"怎么做 Q1 复盘 / 老板报告该写什么内容" —— 那是内容规划问题，不需要模板
+
+  本 skill 只负责 HTML 报告的**生成**：配色、排版、图表工厂函数、章节结构。
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 ---
 
