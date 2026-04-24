@@ -38,7 +38,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 
 ### Step 1：读模板作为起点
 ```
-Read /Users/yuanzheyi/GL-iNet/Projects/DataTeam/.claude/skills/html-report/assets/template.html
+Read assets/template.html
 ```
 **不要从零写 HTML。** 模板已经包含了全部 CSS 设计令牌、组件样式、响应式规则、ECharts 工厂函数（`C` 颜色对象、`tooltipStyle()`、`axisStyle()`、`lerpColor()`）。
 
