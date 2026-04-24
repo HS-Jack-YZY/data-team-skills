@@ -18,27 +18,44 @@ GL.iNet 数据组共用的 Claude Code Skills 合集。
     └── html-report/         GL.iNet 数据组的 HTML 报告模板与设计系统
 ```
 
-## 安装使用
+## 安装使用（Claude Code 插件 marketplace 模式）
+
+本仓库同时是一个 **Claude Code 插件 marketplace**——两条命令装完，之后自动更新。
+
+```
+/plugin marketplace add HS-Jack-YZY/data-team-skills
+/plugin install data-team-skills@data-team-skills
+```
+
+就这些。重启 Claude Code 会话后，`skills/` 下的全部 skill 都可用。
+
+**后续怎么更新？** 什么都不用做。每次启动新会话时，Claude Code 会刷新 marketplace；我们这边 push 的任何 skill 改动或新增都会自动同步到你本地。
+
+**想关掉自动更新？** 编辑 `~/.claude/plugins/known_marketplaces.json`，把 `data-team-skills` 条目的 `"autoUpdate"` 改为 `false`，改用手动：
+
+```
+/plugin marketplace update data-team-skills
+```
+
+### 从旧的手工 symlink 方式迁移
+
+如果你之前按旧 README 手工 `ln -s` 过 `~/.claude/skills/html-report`，装 plugin **之前**先删掉那个 symlink，避免同名 skill 冲突：
 
 ```bash
-# 1. clone 到本地任意位置
+rm ~/.claude/skills/html-report
+```
+
+然后再走上面两条 `/plugin` 命令。
+
+### 不想用插件系统？传统 clone + symlink 仍然可用
+
+```bash
 git clone git@github.com:HS-Jack-YZY/data-team-skills.git
 cd data-team-skills
-
-# 2. 把想用的 skill 软链到 Claude Code 的 skills 目录
 ln -s "$(pwd)/skills/html-report" ~/.claude/skills/html-report
-
-# 3. 重启 Claude Code 会话，skill 即可被加载
 ```
 
-想一次性启用全部 skill：
-
-```bash
-for d in skills/*/; do
-  name=$(basename "$d")
-  ln -s "$(pwd)/$d" "$HOME/.claude/skills/$name"
-done
-```
+这种方式不会自动更新；每次要同步上游改动需手动 `git pull`。
 
 ## 贡献新 skill
 
