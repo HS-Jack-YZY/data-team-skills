@@ -15,7 +15,8 @@ GL.iNet 数据组共用的 Claude Code Skills 合集。
 ├── CONTRIBUTING.md
 ├── .gitignore
 └── skills/
-    └── html-report/         GL.iNet 数据组的 HTML 报告模板与设计系统
+    ├── html-report/         GL.iNet 数据组的 HTML 报告模板与设计系统
+    └── delivery-message/    GL.iNet 数据组对外交付的标准发布消息模板
 ```
 
 ## 安装使用（Claude Code 插件 marketplace 模式）
