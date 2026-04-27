@@ -15,7 +15,8 @@
       "source": "./",
       "strict": false,
       "skills": [
-        "./skills/html-report"
+        "./skills/html-report",
+        "./skills/delivery-message"
       ]
     }
   ]
