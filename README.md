@@ -62,6 +62,8 @@ ln -s "$(pwd)/skills/html-report" ~/.claude/skills/html-report
 
 见 [CONTRIBUTING.md](./CONTRIBUTING.md)。简而言之：一个 skill 一个目录，含 `SKILL.md`（带 frontmatter 的 `name` 和 `description`），大资源放 `assets/`，长文档放 `references/`。
 
+> ⚠️ **关键一步**：新增 skill 后必须把路径同步追加到 `.claude-plugin/marketplace.json` 的 `plugins[0].skills` 数组，否则已安装的同事不会收到。本 marketplace 走显式注册，不会按目录自动扫描——这是有意设计，便于控制哪些 skill 暴露给团队。
+
 ## License
 
 MIT — 见 [LICENSE](./LICENSE)。

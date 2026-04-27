@@ -11,7 +11,7 @@
   "plugins": [
     {
       "name": "data-team-skills",
-      "description": "GL.iNet 数据组共用 skills（当前含 html-report；后续新增会自动出现）",
+      "description": "GL.iNet 数据组共用 skills 合集。新增 skill 需在本 manifest 的 skills 数组里显式注册，未列入的不会被加载。",
       "source": "./",
       "strict": false,
       "skills": [
