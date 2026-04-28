@@ -70,14 +70,14 @@ skill 收齐后产出**对内 Plan 文档**，落盘到 `alignment_docs/<ticket-
 ## 核心契约（Rev 2 · 不要违反）
 
 1. **必须以 alignment_v2.md 为 source of truth** —— 不得绕过 alignment_v2 直接拆 ticket；alignment 缺失时**主动建议**先跑 ticket-aligner，不硬拆
-2. **工时与 alignment_v2.md 第三章选定档 × 6h 一致**（容差 ±10%）—— 例：alignment_v2 选了"精准版 4 工作日"= 24h，则 decomp.md 总 h 必须在 21.6–26.4h 之间。不一致**不得**自行抹平，必须停下报错让用户重审 capabilities.md 或选定档
+2. **工时与 alignment_v2.md 第三章选定档一致**（容差 ±10%）—— 例：alignment_v2 选了"精准版 30h"，则 decomp.md 总 h 必须在 27–33h 之间。不一致**不得**自行抹平，必须停下报错让用户重审 capabilities.md 或选定档
 3. **每个工作单元 ≤ 8h** —— 超过就按维度（市场 / 关键词 / 章节）拆；下限 0.5h，低于不值得单列
 4. **每个工作单元都有完整字段**：编号 / 单元名 / 输入 / 输出产物 / 预计耗时（h）/ 推荐工具 / 依赖 / 可并行兄弟 / DoD / 风险点。**没有 DoD 的 U 不算合格输出**
 5. **依赖图无环** —— 检查 U 之间的依赖图，发现环立即报错
 6. **不分配具体人名**（"@张三 接 U1"）—— skill 只列单元，分配在 IM 抢单或会上敲定
 7. **alignment_v2 与现场说法冲突时停下** —— 不得自行调整；提示用户先回到 ticket-aligner 出 v3
 8. **U 必须基于 work_unit_patterns.md 的 P1–P14 模板** —— 没合适 pattern 的自由格式 U，基线必须标 `（耗时待估）`
-9. **decomp.md 工时对内全用小时 h** —— 不要混用工作日；只在第 5 章工期估算的辅助呈现里把"关键路径 h" / "1 人串行 h" 换算成工作日（6h/工作日）作为辅助呈现
+9. **decomp.md 工时全用小时 h** —— 与 alignment_v2 + capabilities.md 单位一致；不混用工作日 / 天 / 半天等单位
 10. **B 反推工具级时严格遵循 capabilities.md 基线** —— alignment_v2 是业务级描述，B 推到工具级时不要凭空给工具或工时；模糊到无法确定时回 alignment_v3
 
 ---
@@ -145,7 +145,7 @@ Read references/work_unit_patterns.md
 
 #### 章节 1：锁定的需求范围
 
-从 **alignment_v2 第二章（我们计划这样做）+ 第三章（选定档工作日 + 覆盖范围）+ 第五章（已确认对齐项 ✅）+ 第六章（关于范围的几点说明）** 提取一段摘要，≤ 5 句话；让组员对得上对外承诺。
+从 **alignment_v2 第二章（我们计划这样做）+ 第三章（选定档 h + 覆盖范围）+ 第五章（已确认对齐项 ✅）+ 第六章（关于范围的几点说明）** 提取一段摘要，≤ 5 句话；让组员对得上对外承诺。
 
 **关键**：因为 alignment_v2 是对外清爽报告，**不含** Tx 编号 / 🟢🟡🔴 / 工具级细节，B 必须根据这些业务级描述（"自家销售后台 / 公开评论 / 行业数据库"等）+ capabilities.md + decomposition_recipes.md **自己反推**：
 - 业务级数据源 → 具体工具（"公开评论" → Apify Amazon 评论 / Reddit Scraper）
@@ -194,9 +194,9 @@ U4 ─┘
 #### 章节 5：工期估算
 
 ```
-- **1 人串行**：Σ(所有 U) = {Xh} ≈ {X/6} 工作日
-- **2 人并行（典型）**：关键路径 = {Xh} ≈ {X/6} 工作日
-- **N 人最大并行（理论下限）**：{Xh} ≈ {X/6} 工作日（N = {建议数}）
+- **1 人串行**：Σ(所有 U) = {Xh}
+- **2 人并行（典型）**：关键路径 = {Xh}
+- **N 人最大并行（理论下限）**：{Xh}（N = {建议数}）
 ```
 
 如果与 alignment_v2 第 6 章 MVP 总 h 偏差 > ±10%，**不得**自行抹平，输出 `⚠️ 工时不一致警告` 并提示用户检查。
@@ -237,7 +237,7 @@ Write alignment_docs/<ticket-id>/decomp.md
 - ❌ 绕过 alignment_v2 直接读 ticket 拆分 —— alignment_v2 是 source of truth；ticket 仅作业务背景辅助
 - ❌ alignment_v2 与用户对话中说法冲突时自行调整 —— 必须停下让用户出 alignment_v3
 - ❌ 工时与 alignment_v2 选定档（× 6h）不一致时自行抹平 —— 报错并提示用户重审 capabilities.md 或选定档
-- ❌ **decomp.md 出现"工作日 / 半天"作为单 U 工时单位** —— 单 U 全用 h；只在第 5 章工期估算的辅助呈现里换算成工作日
+- ❌ **decomp.md 出现"工作日 / 天 / 半天"作为工时单位** —— 全文统一用 h，与 capabilities.md / alignment_v2 单位一致
 - ❌ alignment_v2 第二章业务级描述太模糊（如"做一些数据收集"），B 强行猜工具 —— 必须停下让 ticket-aligner 出 alignment_v3 补充第二章方法描述
 - ❌ 单 U > 8h —— 必须按维度再拆
 - ❌ 单 U 缺 DoD —— 不合格
