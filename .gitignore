@@ -20,3 +20,17 @@ venv/
 node_modules/
 dist/
 build/
+
+# 个人测试沙箱（不入库）
+sandbox/
+scratch/
+tmp/
+
+# skill 运行时产出（按 ticket 落盘的对齐文档与对内 Plan）
+alignment_docs/
+
+# skill evals 工作区（with_skill / without_skill 子代理跑批结果）
+skills/*-workspace/
+
+# 项目级 skill 测试软链接（不入库；与 marketplace 注册的 skills/ 重复）
+.claude/

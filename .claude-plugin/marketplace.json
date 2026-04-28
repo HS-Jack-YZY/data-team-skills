@@ -16,7 +16,9 @@
       "strict": false,
       "skills": [
         "./skills/html-report",
-        "./skills/delivery-message"
+        "./skills/delivery-message",
+        "./skills/ticket-aligner",
+        "./skills/ticket-decomposer"
       ]
     }
   ]
