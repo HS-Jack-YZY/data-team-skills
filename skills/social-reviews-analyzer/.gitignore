@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+.venv/
+venv/
+
+# scratch / output that users may accidentally produce inside the skill dir
+units.jsonl
+analyses.jsonl
+*.csv
+brief.json
+analyze.log
+analyze_retry.log

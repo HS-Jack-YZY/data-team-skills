@@ -1,0 +1,145 @@
+---
+name: social-reviews-analyzer
+description: Turn raw social-media + e-commerce review CSVs (Reddit, Discourse forums, Amazon) into a single merged CSV of user personas + pain points using LLM semantic analysis. Use this skill whenever the user wants to extract user portraits, pain points, sentiment, or themes from scraped Reddit threads, forum discussions, or Amazon reviews about a product or competitor — even if they only mention "analyze these reviews", "extract pain points", "user research from social data", or just hand over CSVs that look like they came from Apify/Discourse scrapers. Reconstructs conversation trees so the LLM has full thread context, not isolated comments.
+---
+
+# Social-Reviews-Analyzer
+
+Turn scraped social media + review CSVs into a clean persona / pain-point CSV that a PM, marketer, or researcher can act on.
+
+## When to use this
+
+Use this skill when **all** of the following are true:
+
+1. The user has **one or more CSV files** of user-generated content — Reddit posts/comments, Discourse-style forum threads (e.g. openwrt.org, forum.gl-inet.com, discuss.huggingface.co), or Amazon product reviews (typically scraped via Apify).
+2. They want a **structured analysis** of users — personas, pain points, sentiment, themes — not just a summary.
+3. They want **per-thread / per-review** rows in the output, not a single executive summary.
+
+If the user only has one product review and wants a one-off summary, you don't need this skill — just answer in chat.
+
+If the user wants strategic synthesis across the whole dataset (top 5 themes, market positioning), run this skill first to produce the per-row CSV, then summarize from that.
+
+## What it produces
+
+A single CSV at the path the user specifies (default: alongside their inputs), encoded **UTF-8 with BOM** so it opens cleanly in Excel without garbling Chinese/CJK characters. Each row is one analysis unit (one Reddit thread, one forum topic, or one Amazon review) with these columns:
+
+```
+unit_id, source, url, author, date, meta,
+relevance, language,
+technical_level, role, use_case, household_or_env,
+current_or_prior_gear, isp_or_country, persona_evidence,
+pain_points, praised_aspects, themes,
+sentiment_about_product, purchase_intent,
+summary, thread_excerpt
+```
+
+`pain_points`, `praised_aspects`, `themes` are pipe-joined (`a | b | c`).
+
+## Pipeline
+
+Three scripts, run in order. They live in `scripts/` next to this SKILL.md.
+
+```
+1. scripts/preprocess.py   — input CSVs    →  units.jsonl  (one analysis unit per line)
+2. scripts/analyze.py      — units.jsonl   →  analyses.jsonl  (LLM-extracted JSON per unit)
+3. scripts/merge_to_csv.py — both files    →  final CSV (UTF-8 BOM)
+```
+
+Each step is **idempotent** — `analyze.py` skips units already in `analyses.jsonl`, so a crash or rate-limit halt does not waste prior work. Resume by re-running the same command.
+
+## How to invoke
+
+### Step 1 — gather the brief from the user
+
+Ask (or infer from conversation) and record into a `brief.json`:
+
+```json
+{
+  "product_name": "Flint 2",
+  "product_aliases": ["MT6000", "GL-MT6000", "Flint2"],
+  "brand": "GL.iNet",
+  "category": "WiFi 6 router",
+  "competitors": ["Asus RT-BE88U", "TP-Link Archer BE700"],
+  "amazon_model_filter": "MT6000|Flint2",
+  "language_hint": "en"
+}
+```
+
+- `product_aliases` is the most important field — these strings drive how the LLM judges relevance and how the Amazon CSV (which contains many models) is filtered.
+- `amazon_model_filter` is a regex matched against the `_model` column (or `productTitle` if that column is missing). Skip it if the Amazon CSV is already pre-filtered.
+- `competitors` is optional context handed to the LLM so it can recognize comparison framing.
+
+### Step 2 — locate inputs
+
+Inputs are simply a list of CSV paths. Source type is **auto-detected by columns**:
+
+| Source            | Detection rule                                             |
+| ----------------- | ---------------------------------------------------------- |
+| Reddit (Apify)    | has `dataType` column with values `post`/`comment`         |
+| Discourse forum   | has `topic_id`, `post_number`, and `type` columns          |
+| Amazon (Apify)    | has `reviewId` and `_model` (or `productTitle`) columns    |
+
+If a CSV does not match any rule, the preprocessor will print a warning and skip it. The user can then either rename columns or pass `--source-override <path>:<type>`.
+
+### Step 3 — run the pipeline
+
+From a working directory of the user's choice (used as scratch space):
+
+```bash
+WORKDIR=/path/to/scratch        # holds units.jsonl, analyses.jsonl, logs
+mkdir -p "$WORKDIR"
+
+python3 ~/.claude/skills/social-reviews-analyzer/scripts/preprocess.py \
+  --brief brief.json \
+  --inputs reddit.csv forum1.csv amazon.csv \
+  --out "$WORKDIR/units.jsonl"
+
+python3 ~/.claude/skills/social-reviews-analyzer/scripts/analyze.py \
+  --brief brief.json \
+  --units "$WORKDIR/units.jsonl" \
+  --out "$WORKDIR/analyses.jsonl" \
+  --workers 6 \
+  --model claude-haiku-4-5
+
+python3 ~/.claude/skills/social-reviews-analyzer/scripts/merge_to_csv.py \
+  --units "$WORKDIR/units.jsonl" \
+  --analyses "$WORKDIR/analyses.jsonl" \
+  --out final_personas_pain_points.csv
+```
+
+### Step 4 — monitor & report
+
+`analyze.py` prints `[N/total] errors=K cost=$X` every 5 units. For datasets of a few hundred to a few thousand units, run it as a background task and use the Monitor tool (or `tail -f`) to surface progress to the user. A typical 800-unit run with `--workers 6` against `claude-haiku-4-5` finishes in ~25 minutes and costs roughly $15–25 of API credit (cost reflects whatever account `claude` is logged into).
+
+After the run, sanity-check the output by reading the first 20 rows of the CSV — confirm personas vary, pain points are concrete (not generic), and the source breakdown matches what the user expected.
+
+## Cost & runtime ballpark
+
+| Units | Workers | Wall time | Cost (haiku-4-5) |
+| ----- | ------- | --------- | ---------------- |
+| ~100  | 4       | ~3 min    | ~$2              |
+| ~500  | 6       | ~15 min   | ~$10             |
+| ~1000 | 8       | ~25 min   | ~$20             |
+
+These are approximate — short Reddit/Amazon units cost less, long forum threads with many replies cost more.
+
+## Failure modes & how to handle them
+
+- **Empty stderr `returncode=1`**: usually transient (rate limits or transport hiccup). Re-run `analyze.py` — successful units are remembered, only the failed ones retry. If errors persist, drop `--workers` to 3.
+- **Concurrent runs on the same `analyses.jsonl`**: do not start a second `analyze.py` against the same out-file. They will both append and produce duplicates. If duplicates already happened, run `python3 -m json.tool` to dedupe by `unit_id` before merging (the `analyze.py` script can also be invoked with `--dedupe-only` to clean an output file in place).
+- **CSV not auto-detected**: pass `--source-override path/to/file.csv:reddit` (or `:forum`, `:amazon`).
+- **Analysis quality looks shallow** for low-content threads: this is expected — search-snippet-only forum hits get a `relevance: low` tag. Filter the final CSV to `relevance != low` for actionable rows.
+
+## Why reconstruct conversation trees
+
+Isolated comments are nearly useless for persona analysis — "Yeah I switched too" tells you nothing without the parent. The preprocessor:
+
+- For **Reddit**: links each comment to its post via `parsedPostId` and recursively to its parent via `parsedParentId`, then emits the post + top-N comments (sorted by upvotes, indented by reply depth) as one prompt.
+- For **Discourse forums**: groups all rows of the same `topic_id`, prefers `post_full` rows over truncated `post` snippets, and orders by `post_number` so the LLM sees the OP question first then the discussion.
+- For **Amazon**: each review is already self-contained, so the unit is `title + body + rating + verified`.
+
+This is the single biggest quality lever — without it the LLM hallucinates personas from fragments.
+
+## Reference: brief.json schema
+
+See `scripts/brief.example.json` for a fully-commented example a user can copy and edit.
