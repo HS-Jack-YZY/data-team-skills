@@ -1,6 +1,6 @@
 # data-team-skills
 
-GL.iNet 数据组共用的 Claude Code Skills 合集。
+GL.iNet 数据组共用的 Claude Code Skills 与 Commands 合集。
 
 ## 这是什么
 
@@ -14,12 +14,15 @@ GL.iNet 数据组共用的 Claude Code Skills 合集。
 ├── LICENSE
 ├── CONTRIBUTING.md
 ├── .gitignore
-└── skills/
-    ├── html-report/                GL.iNet 数据组的 HTML 报告模板与设计系统
-    ├── delivery-message/           GL.iNet 数据组对外交付的标准发布消息模板
-    ├── ticket-aligner/             ticket 对外对齐报告生成器
-    ├── ticket-decomposer/          对外对齐报告 → 对内执行 Plan
-    └── social-reviews-analyzer/    Reddit / Discourse / Amazon 评论 CSV → 用户画像 + 痛点 CSV
+├── skills/
+│   ├── html-report/                GL.iNet 数据组的 HTML 报告模板与设计系统
+│   ├── delivery-message/           GL.iNet 数据组对外交付的标准发布消息模板
+│   ├── ticket-aligner/             ticket 对外对齐报告生成器
+│   ├── ticket-decomposer/          对外对齐报告 → 对内执行 Plan
+│   └── social-reviews-analyzer/    Reddit / Discourse / Amazon 评论 CSV → 用户画像 + 痛点 CSV
+└── commands/
+    ├── translate-manual.md         英文 → 德/法/西/波兰语 产品手册翻译（v2.1 单 agent 决策固化）
+    └── translate-compare.md        多 agent 翻译 + 跨语言一致性协调（v2.1 多 agent 编排）
 ```
 
 ## 安装使用（Claude Code 插件 marketplace 模式）
@@ -31,15 +34,29 @@ GL.iNet 数据组共用的 Claude Code Skills 合集。
 /plugin install data-team-skills@data-team-skills
 ```
 
-就这些。重启 Claude Code 会话后，`skills/` 下的全部 skill 都可用。
+就这些。重启 Claude Code 会话后，`skills/` 与 `commands/` 下的全部条目都可用。
 
-**后续怎么更新？** 什么都不用做。每次启动新会话时，Claude Code 会刷新 marketplace；我们这边 push 的任何 skill 改动或新增都会自动同步到你本地。
+**后续怎么更新？** 什么都不用做。每次启动新会话时，Claude Code 会刷新 marketplace；我们这边 push 的任何 skill / command 改动或新增都会自动同步到你本地。
 
 **想关掉自动更新？** 编辑 `~/.claude/plugins/known_marketplaces.json`，把 `data-team-skills` 条目的 `"autoUpdate"` 改为 `false`，改用手动：
 
 ```
 /plugin marketplace update data-team-skills
 ```
+
+### 触发翻译命令（commands）
+
+装好后在任意会话里直接打：
+
+```
+/data-team-skills:translate-manual ./MT6000-English.md German
+/data-team-skills:translate-compare ./MT6000-English.md German French Spanish
+```
+
+- `translate-manual`：单 agent，按 v2.1 硬编码决策直接出一版翻译，适合内部速翻。
+- `translate-compare`：每语言 spawn 3 个 agent（2 Sonnet + 1 Opus）+ Opus merger + 跨语言协调，适合发布版高质量翻译。N 个目标语言 = `4N + (N>1 ? 1 : 0)` 个 agent。
+
+参数固定为"源文件路径 + 目标语言"。**不会**停下来询问 UI 字符串、术语、合规、排版——所有决策在命令里硬编码。决策来源（v2.0 product team Q1–Q18 + v2.1 specialist agents Q19–Q24，2026-04-29）记录在源项目 `GL-iNet/others/Translation/`，不随 marketplace 分发。
 
 ### 从旧的手工 symlink 方式迁移
 
