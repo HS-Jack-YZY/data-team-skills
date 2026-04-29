@@ -18,7 +18,7 @@ description: >
   以下情况**不要触发**（让用户先明确意图）：
   - 用户只是描述需求或贴 ticket 文本但没显式喊本 skill —— 不要主动加载
   - 用户在问"这个能不能做"等闲聊性问题
-  - 用户要写报告本身（HTML 报告 → html-report；其他文档不归本 skill）
+  - 用户要写**报告本身**（报告生产走 html-report 等下游 skill；本 skill 只负责对外对齐报告 alignment.md 的撰写）
   - 用户要写交付消息（→ delivery-message）
   - 已经过对齐、要拆分对内 Plan 的下游需求（→ ticket-decomposer）
   - 数据本身的分析、SQL、可视化、口径解释
