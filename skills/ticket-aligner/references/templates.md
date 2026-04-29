@@ -288,6 +288,9 @@
 | `{handler}` | 接单组员（暂未分配写"数据组待分配"） |
 | `{X}` / `{Y}` | 工时数字（h，精准版 / 快速版） |
 | `{N}` | 样本量、市场数等数字 |
+| `{n_questions}` | 章节五 ABC 选项问题数（**仅用于附加产物：对齐确认私信**） |
+| `{n_scope_adjust}` | 章节六调整建议项数（**仅用于附加产物：对齐确认私信**） |
+| `{n_days}` | 私信中给出的反馈截止天数（按 ticket 体量分档；见"附加产物：对齐确认私信"段"截止天数建议"表） |
 
 skill **不要**让占位符泄露到最终文档（产物中不应出现 `{...}`）。
 
@@ -342,79 +345,74 @@ skill **不要**让占位符泄露到最终文档（产物中不应出现 `{...}
 
 ### 长度与形态硬约束
 
-- **5–8 行**（含称呼、含链接行）—— 钉钉私聊超过 8 行大概率被折叠，对方不会展开
-- **不堆 bullet**：1 句引子 + 2–4 行关键信息 + 1 行行动指令 + 1 行截止与默认 + 1 行链接
+- **5–8 行**（**含称呼行 / 含链接行 / 含空行 全部计入**；行 = `\n` 分隔的任何条目）—— 钉钉私聊超过 8 行大概率被折叠不展开
+- **模板与样例一律不留空行** —— 私信不是文档，留白只会被 IM 计入行数
+- **行结构**：1 句引子 + 2–3 行关键信息 + 1 行行动指令 + 1 行链接 + 1 行截止默认 = **上限 7 行**（含条件行）
 - **必须直接可复制粘贴**——不带"以下是私信""你可以这样发"等说明语
 - **私信只承担"指路 + 强制行动"，不承担"传达内容"** —— 内容靠对方读文档，私信复读 = 失败
 
 ### 必含 5 件事（按这个顺序）
 
-1. **@需求方 + 一句话定位**：这是您提的需求《{title}》（{ticket_id}）的**初评 / 初版评估**，不是最终方案
-2. **最关键的 2–3 个点**（根据本 ticket 实际动态选，**只挑最重要的，不超过 3 条**）：
-   - **时间预估**：两档版必给（"精准版（推荐）约 X–Yh / 快速版约 X'–Y'h"）；单档版给单值（"预计约 Xh"）
-   - **需确认的关键问题数**：**不展开内容**，只说"文档第五章有 N 个需要您选 ABC 的点"
-   - **范围调整提醒**（仅当章节六有"做不了 / 建议换做法"时加）："其中 X 项我们建议换种做法，请重点看第六章"
+1. **@需求方 + 一句话定位**：这是您提的需求《{ticket_title}》（{ticket_id}）的**初评 / 初版评估**，不是最终方案
+2. **关键 2–3 条 bullet**（**严格 ≤ 3 条**，与反模式"最多 3 个 bullet"硬上限一致；按下列优先级三选其二或三）：
+   1. **时间预估（必给）**：两档版"精准版（推荐）约 X–Yh / 快速版约 X'–Y'h"；单档版"预计约 Xh"
+   2. **需确认的关键问题数**：**不展开内容**，只说"文档第五章有 {n_questions} 个需要您选 ABC 的点"
+   3. **范围调整提醒**（仅当章节六有"做不了 / 建议换做法"时加）："其中 {n_scope_adjust} 项（{摘要 → 建议替代}）请重点看第六章"
 3. **行动指令（核心 · 必出现）**：请**直接在报告里评论 / 修改**（不要在 IM 里口头说）—— 这是闭环关键，比"看完告诉我意见"明确得多，决定了能否精确合并到 alignment_v2.md
-4. **截止 + 默认**：建议 {N} 天内反馈；逾期按推荐项默认推进（与组员 SOP 第 1 条一致）
+4. **截止 + 默认**：建议 {n_days} 天内反馈（按下方"截止天数建议"按 ticket 体量分档选）；逾期按推荐项默认推进，与 SKILL.md Step 7 (c) 组员 SOP 第 1 条闭环
 5. **链接 / 路径**：alignment.md 的文件路径或共享链接（一行单独放，方便对方点）
 
-### 模板（中文，钉钉默认）
+### 模板（中文，钉钉默认 · 无空行）
 
 ```
 @{requester} 您好，您提的需求《{ticket_title}》（{ticket_id}）初评已出，请抽空过一下：
-
 - 时间预估：{两档：精准版（推荐）约 X–Yh / 快速版约 X'–Y'h｜单档：预计约 Xh}
-- 第五章有 {N} 个需要您选 ABC 的点
-{条件行：- 第六章有 {X} 项我们建议换种做法，请重点看}
-
+- 第五章有 {n_questions} 个需要您选 ABC 的点
+{条件行：- 第六章有 {n_scope_adjust} 项（{摘要 → 建议替代}）请重点看}
 烦请**直接在文档里评论或修改**（不要在这边口头反馈）：
 {alignment.md 路径或共享链接}
-
-如 {N} 天内未反馈，我们将按推荐项默认推进。多谢～
+如 {n_days} 天内未反馈，我们将按推荐项默认推进。多谢～
 ```
 
-### 填好的样例 A（大 ticket · 两档 · 章节六有调整建议）
+行数：引子 1 + bullet 2~3 + 行动指令 1 + 链接 1 + 截止 1 = **6~7 行**，落在 5–8 行硬约束内。
+
+### 填好的样例 A（大 ticket · 两档 · 章节六有调整建议 · 无空行 · 7 行）
 
 ```
 @张三 您好，您提的需求《BE10000 欧洲市场销量评估》（DT-2026-0427-01）初评已出，请抽空过一下：
-
 - 时间预估：精准版（推荐）约 130–150h / 快速版约 60–70h
 - 第五章有 4 个需要您选 ABC 的点
-- 第六章有 1 项（美区销量外推）我们建议换种做法，请重点看
-
+- 第六章有 1 项（美区销量外推 → 建议改用美区评论增长率代理估算），请重点看
 烦请**直接在文档里评论或修改**（不要在这边口头反馈）：
 alignment_docs/DT-2026-0427-01/alignment.md
-
-如 3 天内未反馈，我们将按推荐项默认推进。多谢～
+如 4 天内未反馈，我们将按推荐项默认推进。多谢～
 ```
 
-### 填好的样例 B（小 ticket · 单档 · 章节六全可做）
+> 截止天数选 4 天：本 ticket 130–150h 落入"巨型 ≥ 60h"档（建议 3–5 天），4 天为档内中位、避开与"大 24–60h"档（2–3 天）的边界冲突。
+
+### 填好的样例 B（小 ticket · 单档 · 章节六全可做 · 无空行 · 6 行）
 
 ```
-@李四 您好，您提的需求《USB Tethering 兼容性评测》（DT-2026-0429-02）初评已出，请抽空过一下：
-
+@李四 您好，您提的需求《USB Tethering 兼容性评测》（DT-2026-04-28-02）初评已出，请抽空过一下：
 - 预计约 5h 完成
 - 第五章有 2 个需要您选 ABC 的点
-
 烦请**直接在文档里评论或修改**：
-alignment_docs/DT-2026-0429-02/alignment.md
-
+alignment_docs/DT-2026-04-28-02/alignment.md
 如 1 天内未反馈，我们将按推荐项默认推进。多谢～
 ```
 
-### 英文版模板（海外需求方）
+> ticket-id 与 `assets/example_USB_tethering.md`（小 ticket 收敛形态示例）保持一致，组员可直接对照该 alignment.md 与本私信形态。
+
+### 英文版模板（海外需求方 · 无空行）
 
 ```
-@{requester} Hi, the initial assessment for your ticket "{ticket_title}" ({ticket_id}) is ready — could you take a look:
-
-- Time estimate: {Accurate (recommended) ~X–Yh / Fast ~X'–Y'h｜Single track: ~Xh}
-- Section 5 has {N} multiple-choice points needing your call
-{Conditional: - Section 6 lists {X} item(s) we suggest re-scoping — please review}
-
+@{requester} Hi, the initial assessment for your ticket "{ticket_title}" ({ticket_id}) is ready — please take a look:
+- Time estimate: {Two-track: Accurate (recommended) ~X–Yh / Fast ~X'–Y'h｜Single track: ~Xh}
+- Section 5 has {n_questions} multiple-choice points needing your call
+{Conditional: - Section 6 lists {n_scope_adjust} item(s) ({summary → suggested alternative}) — please review}
 Please **comment or edit directly in the doc** (rather than over chat):
 {path or shared link}
-
-If we don't hear back in {N} days, we'll proceed with the recommended options. Thanks!
+If we don't hear back in {n_days} days, we'll proceed with the recommended options. Thanks!
 ```
 
 ### 截止天数建议（按 ticket 体量）
