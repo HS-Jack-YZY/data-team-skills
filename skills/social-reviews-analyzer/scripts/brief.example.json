@@ -1,0 +1,9 @@
+{
+  "product_name": "Flint 2",
+  "product_aliases": ["MT6000", "GL-MT6000", "Flint2"],
+  "brand": "GL.iNet",
+  "category": "WiFi 6 router",
+  "competitors": ["Asus RT-BE88U", "TP-Link Archer BE700", "Netgear Nighthawk RS300"],
+  "amazon_model_filter": "MT6000|Flint2",
+  "language_hint": "en"
+}
