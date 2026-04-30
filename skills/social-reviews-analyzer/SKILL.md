@@ -82,10 +82,25 @@ If a CSV does not match any rule, the preprocessor will print a warning and skip
 
 ### Step 3 — run the pipeline
 
-From a working directory of the user's choice (used as scratch space):
+From a working directory of the user's choice (used as scratch space).
+
+**WORKDIR + final CSV path** (data-team-tickets repo aware):
+
+| Current CWD | `WORKDIR` (scratch) | Final CSV |
+|---|---|---|
+| GL.iNet `data-team-tickets` repo (`CONVENTIONS.md` + `tickets/` both present) | `tickets/<DT-id>-<slug>/04-execution/<member>/scratch/` (gitignored — see below) | `tickets/<DT-id>-<slug>/04-execution/<member>/data/<final-name>.csv` (sample only — full data goes to shared drive per `CONVENTIONS.md`) |
+| Plain working directory | user's choice | user's choice |
+
+Detection: `[[ -f CONVENTIONS.md && -d tickets/ ]]`
+
+**`data-team-tickets` repo extras**:
+- `<member>` = `git config user.name` slug (lowercase, spaces → `-`).
+- Add `tickets/*/04-execution/*/scratch/` to `.gitignore` if it isn't already — `units.jsonl` / `analyses.jsonl` are intermediate artifacts, not part of the deliverable.
+- If the merged CSV is > 50 MB, save **only a head/tail sample** (≤ 1000 rows) into `data/` and put the full CSV on the shared drive (`\\fileserver\data-team\raw\<DT-id>\`). Drop a pointer note in `data/README.md` per `CONVENTIONS.md`.
+- The repo's Stop hook auto-commits anything under `tickets/` as `exec(<DT-id>): auto-save from Claude session`. Do **not** manually `git add` / `commit`.
 
 ```bash
-WORKDIR=/path/to/scratch        # holds units.jsonl, analyses.jsonl, logs
+WORKDIR=/path/to/scratch        # or tickets/<DT-id>-<slug>/04-execution/<member>/scratch
 mkdir -p "$WORKDIR"
 
 python3 ~/.claude/skills/social-reviews-analyzer/scripts/preprocess.py \

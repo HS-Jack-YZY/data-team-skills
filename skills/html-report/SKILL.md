@@ -69,7 +69,23 @@ Read assets/template.html
 - 做柱图 / 折线 / 饼图 / 双 Y 轴混合 / 堆积 → `Read references/charts.md`
 
 ### Step 5：生成目标文件
-产出路径约定：`reports/<报告名>/index.html`（与现有 `reports/` 目录结构保持一致）。
+
+**产出路径**（按当前工作目录自适应）：
+
+| 当前 CWD | HTML 报告落盘到 |
+|---|---|
+| GL.iNet `data-team-tickets` repo（同时存在 `CONVENTIONS.md` + `tickets/` 目录）+ ticket 已对齐拆分到 final 阶段 | `tickets/<DT-id>-<slug>/05-final/<报告名>.html` |
+| GL.iNet `data-team-tickets` repo + 仍在 execution 阶段（草稿 / 个人探索） | `tickets/<DT-id>-<slug>/04-execution/<member>/<报告名>.html` |
+| 普通工作目录（旧版兼容） | `reports/<报告名>/index.html` |
+
+检测命令：`[[ -f CONVENTIONS.md && -d tickets/ ]]`
+
+**`data-team-tickets` repo 模式额外约定**：
+- `<DT-id>` 与 `<slug>` 取已有 ticket 文件夹名。如不确定 ticket 归属，先问用户。
+- `<member>` 取当前 git 用户名（`git config user.name`）的 slug 化形式（小写、空格转 `-`）。
+- 落盘后 repo 端的 Stop hook 会自动按 stage 提交（`final(<DT-id>)` 或 `exec(<DT-id>): auto-save from Claude session`）；**不要**手动 `git add` / `commit`。
+- 报告需要拆出 `assets/`、`data/` 等子目录时，与 `index.html` 同层放在 `05-final/<报告名>/` 或 `04-execution/<member>/<报告名>/`。
+
 复制 template.html → 改 title → 改 header → 按章节填充 → 替换所有 `{{占位符}}`。
 
 ### Step 6：验证

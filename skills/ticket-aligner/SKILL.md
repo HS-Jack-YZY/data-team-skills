@@ -165,6 +165,22 @@ Read references/templates.md
 
 ### Step 7 — 落盘 + 终端四件套
 
+**落盘路径**（按当前工作目录自适应）：
+
+| 当前 CWD | alignment.md 落盘到 | 历史草稿目录 |
+|---|---|---|
+| GL.iNet `data-team-tickets` repo（同时存在 `CONVENTIONS.md` + `tickets/` 目录） | `tickets/<DT-id>-<slug>/02-alignment/alignment.md`（+ 可选英文 mirror `alignment.en.md`） | `tickets/<DT-id>-<slug>/02-alignment/history/alignment_v<N>.md` |
+| 普通工作目录 | `alignment_docs/<ticket-id>/alignment.md` | 无 |
+
+检测命令：`[[ -f CONVENTIONS.md && -d tickets/ ]]`
+
+**`data-team-tickets` repo 模式额外约定**：
+- `<slug>` 取已有 ticket 文件夹名（如 `kvm-amazon-data` from `tickets/DT-2026-0428-64-kvm-amazon-data/`）。若对应文件夹尚不存在，先 `mkdir -p tickets/<DT-id>-<slug>/{01-intake,02-alignment/history,03-execution-plan,04-execution,05-final,06-validation,07-delivery}`，并按 `CONVENTIONS.md` 的 per-ticket README frontmatter 模板创建 `README.md`。
+- 原 ticket 归档到 `tickets/<DT-id>-<slug>/01-intake/ticket.md`（中文 canonical）+ 可选 `ticket.en.md`（英文 mirror）。
+- 落盘后 repo 端的 Stop hook 会自动按 stage 提交（`alignment(<DT-id>): auto-save from Claude session`）；**不要**手动 `git add` / `commit`。需要推到 GitHub 时让用户跑 `/ticket-publish`。
+
+**普通工作目录模式**（旧版兼容）：
+
 ```
 mkdir -p alignment_docs/<ticket-id>/
 Write alignment_docs/<ticket-id>/alignment.md

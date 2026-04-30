@@ -222,6 +222,22 @@ U4 ─┘
 
 ### Step 6 — 落盘
 
+**落盘路径**（按当前工作目录自适应）：
+
+| 当前 CWD | plan/decomp 文档落盘到 |
+|---|---|
+| GL.iNet `data-team-tickets` repo（同时存在 `CONVENTIONS.md` + `tickets/` 目录） | `tickets/<DT-id>-<slug>/03-execution-plan/plan.md` |
+| 普通工作目录 | `alignment_docs/<ticket-id>/decomp.md` |
+
+检测命令：`[[ -f CONVENTIONS.md && -d tickets/ ]]`
+
+**`data-team-tickets` repo 模式额外约定**：
+- `<slug>` 取已有 ticket 文件夹名（与 alignment 同一个 ticket 目录）。
+- alignment_v2 的源路径改为 `tickets/<DT-id>-<slug>/02-alignment/alignment.md`（在 repo 内文件名固定为 `alignment.md`，是合并需求方反馈后的最新 agreed 版本；旧草稿在 `02-alignment/history/`）。
+- 落盘后 repo 端的 Stop hook 会自动按 stage 提交（`plan(<DT-id>): auto-save from Claude session`）；**不要**手动 `git add` / `commit`。
+
+**普通工作目录模式**（旧版兼容）：
+
 ```
 Write alignment_docs/<ticket-id>/decomp.md
 ```
