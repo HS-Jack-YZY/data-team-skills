@@ -75,6 +75,8 @@ The pipeline is fully resumable — if `analyze.py` is interrupted, just re-run 
 
 A comment like *"yeah I had the same problem"* is useless on its own — you need to see what *the same problem* refers to. The preprocessor stitches each Reddit comment back to its parent and post via `parsedParentId`, indents replies by depth, and sorts by upvotes so the LLM sees the most useful 60 comments per thread in context. For Discourse forums it groups by `topic_id` and prefers `post_full` rows over truncated search snippets, ordering by `post_number`. This is the single biggest lever on output quality.
 
+**Note on filtering**: the preprocessor does not drop short / single-mention forum topics. The LLM tags every unit with `relevance: high|medium|low` based on whether the product is actually discussed; you filter the output CSV on that column. This catches breadth-of-voice signal (which competitors users mention you alongside, casual recommendations, mention frequency) that a length-based heuristic would silently throw away. For forum-heavy datasets this means more units in the LLM stage — a typical product with ~1500 raw forum topics will produce ~1500 units instead of the ~300 a length filter would have kept, so cost scales accordingly.
+
 ## Cost & runtime
 
 | Units | Workers | Wall time | Cost (haiku-4-5) |
