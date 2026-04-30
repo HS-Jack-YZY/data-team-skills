@@ -60,14 +60,13 @@ Ask (or infer from conversation) and record into a `brief.json`:
   "brand": "GL.iNet",
   "category": "WiFi 6 router",
   "competitors": ["Asus RT-BE88U", "TP-Link Archer BE700"],
-  "amazon_model_filter": "MT6000|Flint2",
   "language_hint": "en"
 }
 ```
 
-- `product_aliases` is the most important field — these strings drive how the LLM judges relevance and how the Amazon CSV (which contains many models) is filtered.
-- `amazon_model_filter` is a regex matched against the `_model` column (or `productTitle` if that column is missing). Skip it if the Amazon CSV is already pre-filtered.
+- `product_aliases` is the most important field — these strings drive how the LLM judges per-unit relevance to your focal product.
 - `competitors` is optional context handed to the LLM so it can recognize comparison framing.
+- **Amazon CSVs are not filtered by model.** If your Amazon CSV mixes your product with competitors (typical of "scrape my product + 5 competitors" workflows), all rows are kept — competitor reviews carry valuable category-level persona / pain-point signal, and the LLM tags relevance per unit so you can filter on the output CSV. If you only want your own product's reviews, pre-filter the CSV before running.
 
 ### Step 2 — locate inputs
 
@@ -128,14 +127,14 @@ These are approximate — short Reddit/Amazon units cost less, long forum thread
 - **Empty stderr `returncode=1`**: usually transient (rate limits or transport hiccup). Re-run `analyze.py` — successful units are remembered, only the failed ones retry. If errors persist, drop `--workers` to 3.
 - **Concurrent runs on the same `analyses.jsonl`**: do not start a second `analyze.py` against the same out-file. They will both append and produce duplicates. If duplicates already happened, run `python3 -m json.tool` to dedupe by `unit_id` before merging (the `analyze.py` script can also be invoked with `--dedupe-only` to clean an output file in place).
 - **CSV not auto-detected**: pass `--source-override path/to/file.csv:reddit` (or `:forum`, `:amazon`).
-- **Analysis quality looks shallow** for low-content threads: this is expected — search-snippet-only forum hits get a `relevance: low` tag. Filter the final CSV to `relevance != low` for actionable rows.
+- **Analysis quality looks shallow** for low-content threads: this is expected. Short forum hits where the product is only mentioned in passing get a `relevance: low` (or `medium`) tag from the LLM. The preprocessor deliberately does **not** drop them — casual single-mentions are valuable share-of-voice signal (which competitors users mention you alongside, what use cases they bring up, mention frequency). Filter the final CSV to `relevance != low` if you only want deep / actionable rows; keep them all if you want breadth analysis.
 
 ## Why reconstruct conversation trees
 
 Isolated comments are nearly useless for persona analysis — "Yeah I switched too" tells you nothing without the parent. The preprocessor:
 
 - For **Reddit**: links each comment to its post via `parsedPostId` and recursively to its parent via `parsedParentId`, then emits the post + top-N comments (sorted by upvotes, indented by reply depth) as one prompt.
-- For **Discourse forums**: groups all rows of the same `topic_id`, prefers `post_full` rows over truncated `post` snippets, and orders by `post_number` so the LLM sees the OP question first then the discussion.
+- For **Discourse forums**: groups all rows of the same `topic_id`, prefers `post_full` rows over truncated `post` snippets, and orders by `post_number` so the LLM sees the OP question first then the discussion. Even single-snippet hits (the topic was matched by the search but no full body was scraped) are kept — they still carry useful "this user mentioned the product alongside X" signal. The LLM tags relevance per unit; you decide downstream whether to filter.
 - For **Amazon**: each review is already self-contained, so the unit is `title + body + rating + verified`.
 
 This is the single biggest quality lever — without it the LLM hallucinates personas from fragments.

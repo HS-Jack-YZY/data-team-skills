@@ -135,11 +135,15 @@ def from_forum(df: pd.DataFrame, source_label: str) -> list[dict]:
         if not msgs:
             continue
 
-        # Drop low-signal stubs (search-snippet-only with no real content)
-        total_chars = sum(len(m) for m in msgs)
+        # Note: we deliberately do NOT filter low-signal / short-snippet topics here.
+        # The LLM emits a `relevance: low|medium|high` tag per unit; the user can
+        # filter the final CSV on that column post-hoc. Letting the LLM judge
+        # relevance semantically is more accurate than a length heuristic, and
+        # short single-mention threads still carry breadth-of-voice signal
+        # (which competitors get mentioned alongside the product, casual
+        # recommendations, share-of-voice) that a length filter would silently
+        # discard.
         has_full = len(full_rows) > 0
-        if not has_full and total_chars < 400:
-            continue
 
         thread = ('TOPIC: ' + title + '\n' if title else '') + '\n'.join(msgs)
         try:
@@ -158,17 +162,15 @@ def from_forum(df: pd.DataFrame, source_label: str) -> list[dict]:
     return units
 
 
-def from_amazon(df: pd.DataFrame, source_label: str, model_filter: str | None) -> list[dict]:
-    if model_filter:
-        # Match against _model first, fall back to productTitle if _model missing.
-        if '_model' in df.columns:
-            mask = df['_model'].astype(str).str.contains(model_filter, case=False, na=False, regex=True)
-        elif 'productTitle' in df.columns:
-            mask = df['productTitle'].astype(str).str.contains(model_filter, case=False, na=False, regex=True)
-        else:
-            mask = pd.Series([True] * len(df))
-        df = df[mask]
-
+def from_amazon(df: pd.DataFrame, source_label: str) -> list[dict]:
+    # Note: we intentionally do NOT filter Amazon rows by product model here.
+    # If the user passed a CSV that mixes multiple competing products (typical
+    # of "scrape my product + 5 competitors" workflows), all reviews are kept.
+    # Competitor reviews are valuable persona / pain-point data for the same
+    # category — the LLM tags each unit with `relevance: low|medium|high` based
+    # on whether the focal product is actually mentioned, so the user can
+    # filter on the output CSV. If the user only wants their own product's
+    # reviews, they can pre-filter the input CSV before calling preprocess.
     units = []
     for _, r in df.iterrows():
         text = str(r.get('text', '') or '').strip()
@@ -236,7 +238,7 @@ def main():
         elif kind == 'forum':
             units = from_forum(df, label)
         elif kind == 'amazon':
-            units = from_amazon(df, label, brief.get('amazon_model_filter'))
+            units = from_amazon(df, label)
         else:
             print(f'SKIP: unknown override type {kind!r} for {pth}', file=sys.stderr)
             continue
