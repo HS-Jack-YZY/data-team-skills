@@ -6,7 +6,7 @@ description: >
   落盘 alignment_v{N}.md（首次 v1 / 反馈后 v2、v3…）之外，同时输出**终端四件套**——文件路径 / 章节五节选 / 组员 SOP / **(d) 对齐确认私信**——后者是组员私发需求方的简短钉钉文案，把对方拉回报告评审形成"读 → 在文档里改 → 反馈"闭环。
   报告四个目的：(1) 让需求方知道我们在做事；(2) 教育对方"分析需要时间"，避免事无巨细加需求；
   (3) 对齐方向不合理或无法达成的诉求；(4) "急 vs 精"权衡——精准版优势明确，快速版牺牲量化。
-  对内技术细节（可行性三色 / 工具级 U / 工时小时数）由 ticket-decomposer 在反馈合并后从 capabilities 反推，
+  对内技术细节（可行性三色 / 工具级 U / 工时小时数）由 ticket-plan 在反馈合并后从 capabilities 反推，
   不混入本 skill 的输出。
 
   仅在以下情况触发，否则不要加载：
@@ -21,10 +21,10 @@ description: >
   - 用户在问"这个能不能做"等闲聊性问题
   - 用户要写**报告本身**（报告生产走 html-report 等下游 skill；本 skill 只负责对外对齐文档 alignment_v{N}.md 的撰写）
   - 用户要写交付消息（→ delivery-message）
-  - 已经过对齐、要拆分对内 Plan 的下游需求（→ ticket-decomposer）
+  - 已经过对齐、要拆分对内 Plan 的下游需求（→ ticket-plan）
   - 数据本身的分析、SQL、可视化、口径解释
 
-  本 skill 仅在显式调用时触发；下游对内 Plan 拆分请用 ticket-decomposer。
+  本 skill 仅在显式调用时触发；下游对内 Plan 拆分请用 ticket-plan。
 allowed-tools: Read, Write, Bash
 ---
 
@@ -34,15 +34,20 @@ allowed-tools: Read, Write, Bash
 
 整套数据组 ticket 处理 pipeline：
 
+```mermaid
+flowchart LR
+    T[ticket] --> A1["ticket-aligner（首次调用）"]
+    A1 --> AV1[alignment_v1.md]
+    AV1 --> Send[发给需求方]
+    Send --> F[需求方反馈]
+    F --> A2["ticket-aligner（再次调用 · 喂入反馈）"]
+    A2 --> AVN["alignment_v{N}.md"]
+    AVN --> P["ticket-plan"]
+    P --> PM[plan.md]
+    PM --> EX[组员并行执行]
 ```
-ticket → ticket-aligner（首次调用）→ alignment_v1.md → 发给需求方
-                                  ↓
-                             需求方反馈
-                                  ↓
-       ticket-aligner（再次调用，喂入反馈）→ alignment_v2.md（… vN）
-                                  ↓
-                ticket-decomposer → plan.md → 组员并行执行
-```
+
+> ticket-plan 也支持绕过 alignment 流程的"直接需求"模式（参见 `skills/ticket-plan/SKILL.md` 触发模式 B / C）。本 skill 只负责对外对齐这条 pipeline。
 
 每次调用本 skill 都自动产出新版本号：首次写 `alignment_v1.md`，已存在 v1 时写 v2，依此类推。历史版本永远保留——这是给需求方做溯源 + 内部审计的依据。
 
@@ -173,7 +178,7 @@ Read references/templates.md
 
 > 请提供 ticket 编号（短编号如 `66`，或完整编号如 `DT-2026-0427-01`），我才能创建 ticket 目录。
 
-无编号一律不写文件——避免在错位置或假名字下产出。这条规则的存在是因为：ticket 目录名是编号 + slug 的拼接，编号是稳定锚点，没有它后续 ticket-decomposer / html-report 都对不上号。
+无编号一律不写文件——避免在错位置或假名字下产出。这条规则的存在是因为：ticket 目录名是编号 + slug 的拼接，编号是稳定锚点，没有它后续 ticket-plan / html-report 都对不上号。
 
 #### 7.2 派生 ticket 目录名
 
@@ -234,7 +239,7 @@ Write <编号>_<slug>/docs/ticket.md
 **(c) 组员 SOP** —— 仅在终端呈现，**不写进 alignment 文件**。提示组员后续如何处理该 ticket，按当前 ticket 实际情况删改以下默认 4–5 条：
 
 - 章节五任意问题未回复按推荐项默认；时间档位（最末问）若未回复默认精准版；**超过 (d) 私信中给定的截止天数（巨型 3–5 天 / 大 2–3 天 / 中 1–2 天 / 小 1 天）后按此推荐项默认推进**，与 (d) 私信"逾期按推荐项默认"承诺闭环
-- 需求方反馈合并后产出 `alignment_v2.md`，再由 ticket-decomposer 拆 `decomp.md`
+- 需求方反馈合并后产出 `alignment_v2.md`，再由 ticket-plan 拆 `plan.md`
 - 跨品类 ticket 工时倍数（×1.5）是否生效（仅非路由器品类生效；本 ticket 适用 / 不适用 写明）
 - 章节五中如有"需协调外部资源"项（问卷投放渠道、新平台接入、跨部门埋点等），提示组员在 v2 之前先 outreach；若确认无法协调，回退到推荐项
 - 如 ticket 含 Dashboard / LIVE 工具部分，提示工具开发部分单独拆分立项
@@ -276,7 +281,7 @@ Write <编号>_<slug>/docs/ticket.md
 skills/ticket-aligner/
 ├── SKILL.md                       # 你正在读的这个文件
 ├── references/
-│   ├── capabilities.md            # 数据源 / 工具清单 + 工时基线（与 ticket-decomposer 共享）
+│   ├── capabilities.md            # 数据源 / 工具清单 + 工时基线（与 ticket-plan 共享）
 │   ├── dimensions.md              # 10 类需求的额主问题清单 + 工时弹性 + 默认值
 │   └── templates.md               # 8 章节骨架 + 写法约束 + 占位符
 └── assets/
@@ -294,7 +299,7 @@ skills/ticket-aligner/
 │   │   ├── alignment_v1.md                     # 本 skill 首次输出
 │   │   ├── alignment_v2.md                     # 反馈后再次调用本 skill 产出
 │   │   └── alignment_v{N}.md                   # 后续反馈轮次
-│   ├── plan.md                                 # ticket-decomposer 输出
+│   ├── plan.md                                 # ticket-plan 输出
 │   ├── data/                                   # 中间数据（social-reviews-analyzer 等写入）
 │   └── delivery.md                             # delivery-message 镜像归档
 └── <编号>_<slug>.html                          # html-report 最终成品（在 ticket 根，不在 docs 下）

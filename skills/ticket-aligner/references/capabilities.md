@@ -1,6 +1,6 @@
 # capabilities.md — GL.iNet 数据组能力 / 数据源 / 工时基线
 
-> 本文件是 **ticket-aligner** 与 **ticket-decomposer** 两个 skill 的共享锚点。物理位置在 `skills/ticket-aligner/references/capabilities.md`，ticket-decomposer 通过相对路径 `Read ../ticket-aligner/references/capabilities.md` 引用。
+> 本文件是 **ticket-aligner** 与 **ticket-plan** 两个 skill 的共享锚点。物理位置在 `skills/ticket-aligner/references/capabilities.md`，ticket-plan 通过相对路径 `Read ../ticket-aligner/references/capabilities.md` 引用。
 >
 > **改动注意**：任何工时基线、可行性标记的更新都会同时影响"对外承诺"和"对内分配"。改之前先和组员对齐；改之后在文末"版本与校准"段更新版本号 + 校准日期。
 
