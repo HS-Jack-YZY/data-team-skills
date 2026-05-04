@@ -18,7 +18,7 @@
         "./skills/html-report",
         "./skills/delivery-message",
         "./skills/ticket-aligner",
-        "./skills/ticket-decomposer",
+        "./skills/ticket-plan",
         "./skills/social-reviews-analyzer"
       ]
     }

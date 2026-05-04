@@ -1,6 +1,8 @@
 # work_unit_patterns.md — 典型工作单元模板（B 专用）
 
-> 本文件供 **ticket-decomposer** 在 Step 4 读取，作为生成第 3 章工作单元清单时的模板池。
+> 本文件供 **ticket-plan** 在 Step 4 读取，作为生成第 3 章工作单元清单时的模板池。
+>
+> **路径约定**：所有 U 的"输出产物"路径必须在 `<编号>_<slug>/docs/data/{raw/<source>,analyzed}/` 单根下（与 SKILL.md "产物路径约定" 一节同步）。下方 P-pattern 中给出的路径示例已遵循此约定。
 >
 > 每个 U-pattern 是一个"原子工作单元"的填空模板，含字段：输入 / 输出产物 / 工具 / 基线 / DoD / 风险。skill 在生成 Plan 时挑选适用的 U-pattern，复制并填空，**不要**新造无 pattern 的自由格式工作单元（除非真的没合适的 pattern——此时基线必须标 `（耗时待估）`）。
 >
@@ -44,7 +46,7 @@
 - DoD：
   - 关键词清单覆盖 100%
   - 清洗后行数 ≥ 100（提及关键词的内容）
-  - 归档到 data/raw/reddit/<ticket-id>/
+  - 归档到 `<编号>_<slug>/docs/data/raw/reddit/`
 - 风险：限流（每批 ≤ 5 关键词）、冷门关键词无结果（需提前做 1 关键词试跑）
 ```
 
@@ -67,7 +69,7 @@
   - 全部 ASIN × 市场 抓取完成
   - 单 ASIN 单市场行数符合预期（普通 ≥ 200，热门 ≥ 1000）
   - 字段完整无缺
-  - 归档到 data/raw/amazon/<ticket-id>/
+  - 归档到 `<编号>_<slug>/docs/data/raw/amazon/`
 - 风险：热门 ASIN 大量抓取需要拆分批次；多市场需注意语种（DE / JP 评论需后续翻译标注）
 ```
 
@@ -83,7 +85,7 @@
 - 预计耗时：0.5h / 搜索词
 - 依赖：搜索词清单（来自词典或 PM 提供）
 - 可并行：与 P1 / P2 / P4 完全并行
-- DoD：搜索词覆盖 100%；归档到 data/raw/forum/<source>/<ticket-id>/
+- DoD：搜索词覆盖 100%；归档到 `<编号>_<slug>/docs/data/raw/forum/<source>/`（`<source>` 如 `glinet`、`openwrt`）
 - 风险：API 速率限制（一般不会触发）；论坛活跃度低导致结果稀疏
 ```
 
@@ -134,7 +136,7 @@
 - DoD：
   - SQL 跑通无错
   - 关键指标值与上次基线对比合理（<20% 偏差）
-  - 数据落地到 data/amc/<ticket-id>/
+  - 数据落地到 `<编号>_<slug>/docs/data/raw/amc/`
 - 风险：凭证过期（单独建一个 P-pre 验证凭证）；查询超时（超过 5 分钟需要拆 SQL）
 ```
 
@@ -169,7 +171,7 @@
 - DoD：
   - 标注覆盖率 ≥ 60%（即 ≥ 60% 的行被至少一个词典命中）
   - 命中率 < 30% 时提示需要扩词或新建词典
-  - 落地到 data/labeled/<ticket-id>/
+  - 落地到 `<编号>_<slug>/docs/data/analyzed/`（labeled 视为 analyzed 的子类，统一放 analyzed/ 下；文件名前缀 `labeled_` 区分）
 - 风险：词典命中率低（提示走 P9）；多义词误命中（需人工抽检 ≥ 50 条）
 ```
 
@@ -207,7 +209,7 @@
 - DoD：
   - 全部数据有 sentiment 标签
   - 抽 100 条做人工 vs LLM 一致性 ≥ 80%（不达标走 prompt tuning，再做一次）
-  - 落地到 data/analyzed/<ticket-id>/
+  - 落地到 `<编号>_<slug>/docs/data/analyzed/`
 - 风险：长文本超 token 限制（需分块）；某些类目 prompt 漂移（先用小批量 50 条试调）
 ```
 
@@ -295,7 +297,7 @@
 
 - ✅ 输出文件落地到约定路径
 - ✅ 数据行数 / 字段 / 范围与单元名声明一致
-- ✅ 异常 / 缺失 / 限流情况记录到 `data/<ticket-id>/issues.md`
+- ✅ 异常 / 缺失 / 限流情况记录到 `<编号>_<slug>/docs/data/issues.md`
 - ✅ 在 IM 抢单贴下 ✅ 标注完成（可选附路径）
 
 ---

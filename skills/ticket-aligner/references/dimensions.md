@@ -256,7 +256,7 @@
 
 ## 时间单位约定（Rev 3 · 给 skill 看的）
 
-> ticket-aligner 的对外输出（章节三 / 五）与 ticket-decomposer 的对内 Plan **统一用小时 h**——与 capabilities.md 基线一致，避免换算误差，也避免"一块一天"的粗粒度遮蔽真实工作步骤。
+> ticket-aligner 的对外输出（章节三 / 五）与 ticket-plan 的对内 Plan **统一用小时 h**——与 capabilities.md 基线一致，避免换算误差，也避免"一块一天"的粗粒度遮蔽真实工作步骤。
 
 ### 单位规则
 

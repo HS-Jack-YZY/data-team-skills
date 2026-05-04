@@ -18,7 +18,7 @@ GL.iNet 数据组共用的 Claude Code Skills 与 Commands 合集。
 │   ├── html-report/                GL.iNet 数据组的 HTML 报告模板与设计系统
 │   ├── delivery-message/           GL.iNet 数据组对外交付的标准发布消息模板
 │   ├── ticket-aligner/             ticket 对外对齐报告生成器
-│   ├── ticket-decomposer/          对外对齐报告 → 对内执行 Plan
+│   ├── ticket-plan/                对内执行 Plan 生成器（支持 alignment / 直接需求 / 模棱两可三种入口）
 │   └── social-reviews-analyzer/    Reddit / Discourse / Amazon 评论 CSV → 用户画像 + 痛点 CSV
 └── commands/
     ├── translate-manual.md         英文 → 德/法/西/波兰语 产品手册翻译（v2.1 单 agent 决策固化）
@@ -53,16 +53,29 @@ skill 会：
 
 需求方反馈后再次调用本 skill，会自动在同目录里写出 `alignment_v2.md`、`alignment_v3.md`……版本号 +1，旧版本永远保留（需求方溯源 + 内部审计依据）。
 
-### 3. 拆解（`/ticket-decomposer <编号>`）
+### 3. 拆解（`/ticket-plan <编号或需求>`）
 
 ```bash
-/ticket-decomposer 66
+# 模式 A：基于 alignment 报告
+/ticket-plan ./66_Manual-SFT1200-Translation-FR-DE-ES-PL/docs/alignment_docs/alignment_v2.md
+
+# 模式 B：直接简单需求（绕过 aligner）
+/ticket-plan BE9300 在美国市场过去 12 个月的销量占比 → 输出占比表 + 趋势图
+
+# 模式 C：模棱两可（skill 反问最少必要问题）
+/ticket-plan 看一下竞品
 ```
 
-skill 自动定位最新 `alignment_v{N}.md`（一行 `ls ... | sort -V | tail -1` 解决），产出执行 plan：
+skill 三模式自适应：
+
+- **模式 A** — 自动定位最新 `alignment_v{N}.md`（一行 `ls ... | sort -V | tail -1` 解决），按既有契约（工时与 alignment 选定档 ±10% 容差等）拆 plan
+- **模式 B** — 一句话同时含产品 + 市场 + 时间窗 + 输出物，直接拆 plan 并标注"未经需求方对齐 ±20%"
+- **模式 C** — 反问 1–3 条最缺项后回到模式 B，**不**走完整 aligner 8 章节
+
+产出执行 plan 落 ticket 单根：
 
 ```
-66_<slug>/docs/plan.md
+<编号>_<slug>/docs/plan.md
 ```
 
 ### 4. 数据获取与分析（中间步骤）

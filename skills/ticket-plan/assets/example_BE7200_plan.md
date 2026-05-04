@@ -1,13 +1,16 @@
 # 需求 DT-2026-04-28-01 对内执行 Plan
 
 - **ticket 标题**：桌面新系列-Basalt系列BE7200 用户偏好与产品定义
-- **alignment 版本**：v2（基于：DT-2026-04-28-01_BE7200-User-Research/docs/alignment_docs/alignment_v2.md）
+- **触发模式**：A · 来自 alignment_v{N}.md
+- **alignment 版本**：v2（基于：`DT-2026-04-28-01_BE7200-User-Research/docs/alignment_docs/alignment_v2.md`）
 - **类型分类**：用户研究 + 产品定义
 - **生成时间**：2026-04-29 09:00
 - **基于 capabilities.md 版本**：v0.1
 - **状态**：v1（首次拆分）
 
 > **假设的需求方反馈**（已合并进 alignment_v2）：Q1=A（仅 3 决策点）·Q2=B（US+DE+UK）·Q3=A（HTML 报告）·Q4=B（Flint2 作上代用户参考组）·Q5=A（**选精准版**，约 30–36h）。alignment_v2 第三章选定档：**精准版 30–36h**。本 Plan 反推工具级后总 h 应在此区间 ±10% 容差内。
+
+> **路径约定**：本示例所有产物路径全部在 `DT-2026-04-28-01_BE7200-User-Research/` 这个 ticket 单根目录下（`<编号>_<slug>/` 形态），与 SKILL.md "产物路径约定" 一节同步。
 
 ---
 
@@ -35,7 +38,7 @@
 ### U1. Amazon 评论抓取（自家 4 ASIN + 竞品 4 ASIN · US 主 + DE/UK 自家）
 
 - **输入**：ASIN 清单（自家 BE9300 / BE6500 / Flint4 / MT6000；竞品 ASUS RT-BE92U / TP-Link Archer BE800 / NETGEAR Nighthawk RS500 / Synology BC500）
-- **输出产物**：`data/raw/amazon/DT-2026-04-28-01/amazon_reviews_<asin>_<market>_<YYYYMMDD>.csv`
+- **输出产物**：`DT-2026-04-28-01_BE7200-User-Research/docs/data/raw/amazon/amazon_reviews_<asin>_<market>_<YYYYMMDD>.csv`
 - **预计耗时**：5h（US 8 ASIN × 0.5h = 4h；DE/UK 自家 3 ASIN × 0.5h × 0.66 系数 = 1h）
 - **推荐工具**：Apify Amazon 评论（SHADER 代理）
 - **基于 P-pattern**：P2
@@ -50,31 +53,31 @@
 ### U2. Reddit 抓取（决策点关键词 ×6 + 场景词 ×4）
 
 - **输入**：关键词清单——决策点：`router id design`, `router antenna external internal`, `router 2.5g port`, `router sfp+`, `usb-c router`, `router type-c`；场景：`home office router`, `travel router hotel`, `desk router setup`, `roaming router`
-- **输出产物**：`data/raw/reddit/DT-2026-04-28-01/reddit_<keyword>_<YYYYMMDD>.csv`（8 列标准字段）
+- **输出产物**：`DT-2026-04-28-01_BE7200-User-Research/docs/data/raw/reddit/reddit_<keyword>_<YYYYMMDD>.csv`（8 列标准字段）
 - **预计耗时**：5h（10 关键词 × ~0.5h 实际，因每批 5 关键词，2 批跑批 + 清洗）
 - **推荐工具**：Apify Reddit Scraper
 - **基于 P-pattern**：P1
 - **依赖**：无
 - **可并行兄弟**：U1 / U3 / U4
-- **DoD**：10 关键词全部跑完；每关键词清洗后行数 ≥ 80（冷门关键词 ≥ 30）；归档到 `data/raw/reddit/DT-2026-04-28-01/`
+- **DoD**：10 关键词全部跑完；每关键词清洗后行数 ≥ 80（冷门关键词 ≥ 30）；归档到 `DT-2026-04-28-01_BE7200-User-Research/docs/data/raw/reddit/`
 - **风险**：场景词（"hotel"、"travel"）可能漂到旅行路由器子版块，需在 U6 标注层做后过滤
 
 ### U3. GL.iNet 论坛抓取（4 搜索词）
 
 - **输入**：搜索词 `port configuration`, `usb type-c`, `antenna external`, `desktop router setup`
-- **输出产物**：`data/raw/forum/glinet/DT-2026-04-28-01/forum_glinet_<keyword>_<YYYYMMDD>.csv`
+- **输出产物**：`DT-2026-04-28-01_BE7200-User-Research/docs/data/raw/forum/glinet/forum_glinet_<keyword>_<YYYYMMDD>.csv`
 - **预计耗时**：2h（4 关键词 × 0.5h）
 - **推荐工具**：forum_scraper.py（Discourse API）
 - **基于 P-pattern**：P3
 - **依赖**：无
 - **可并行兄弟**：U1 / U2 / U4
-- **DoD**：4 搜索词跑完；归档到 `data/raw/forum/glinet/DT-2026-04-28-01/`
+- **DoD**：4 搜索词跑完；归档到 `DT-2026-04-28-01_BE7200-User-Research/docs/data/raw/forum/glinet/`
 - **风险**：GL.iNet 论坛活跃用户偏极客，结论代表性偏 OpenWrt 用户群
 
 ### U4. OpenWrt 论坛抓取（2 搜索词）
 
 - **输入**：搜索词 `desktop router hardware`, `usb tethering router`
-- **输出产物**：`data/raw/forum/openwrt/DT-2026-04-28-01/forum_openwrt_<keyword>_<YYYYMMDD>.csv`
+- **输出产物**：`DT-2026-04-28-01_BE7200-User-Research/docs/data/raw/forum/openwrt/forum_openwrt_<keyword>_<YYYYMMDD>.csv`
 - **预计耗时**：1h
 - **推荐工具**：forum_scraper.py
 - **基于 P-pattern**：P3
@@ -86,7 +89,7 @@
 ### U5. 场景词扩词（home office vs travel）
 
 - **输入**：U2 第一批回来的抽样语料（先跑 1 关键词试跑取 ≥ 50 条）
-- **输出产物**：`dict/scenario_v1.json`（结构：home_office_words / travel_words / aliases）
+- **输出产物**：`DT-2026-04-28-01_BE7200-User-Research/docs/data/analyzed/dict_scenario_v1.json`（结构：home_office_words / travel_words / aliases）
 - **预计耗时**：2h（基于 +4h 弹性的简化版——只标场景词不重做整套词典）
 - **推荐工具**：Python + Claude 协助生成词候选 + 人工筛选
 - **基于 P-pattern**：P9（扩词变体）
@@ -98,19 +101,19 @@
 ### U6. 词典标注（ID / 网口 / USB + 场景词）
 
 - **输入**：U1 + U2 + U3 + U4 全部数据 + U5 场景词典
-- **输出产物**：`data/labeled/DT-2026-04-28-01/labeled_*.csv`（含 tag_id_design / tag_ports / tag_usb / scenario）
+- **输出产物**：`DT-2026-04-28-01_BE7200-User-Research/docs/data/analyzed/labeled_<dataset>_<YYYYMMDD>.csv`（含 tag_id_design / tag_ports / tag_usb / scenario）
 - **预计耗时**：1.5h
 - **推荐工具**：Python 脚本（复用 clean_reddit_data.py 风格）
 - **基于 P-pattern**：P8
 - **依赖**：U1 + U2 + U3 + U4 + U5 全部完成
 - **可并行兄弟**：无（汇聚节点）
-- **DoD**：标注覆盖率 ≥ 60%；Flint2 数据单独 tag 为 `legacy_user`；归档到 `data/labeled/DT-2026-04-28-01/`
+- **DoD**：标注覆盖率 ≥ 60%；Flint2 数据单独 tag 为 `legacy_user`；归档到 `DT-2026-04-28-01_BE7200-User-Research/docs/data/analyzed/`
 - **风险**：MT6000 评论量大，标注耗时可能 +0.5h
 
 ### U7. LLM 语义分析（情感 + 主题聚类）
 
 - **输入**：U6 标注后数据（预计总量 ~3000–4000 条）
-- **输出产物**：`data/analyzed/DT-2026-04-28-01/llm_*.csv`（含 sentiment / theme / persona）
+- **输出产物**：`DT-2026-04-28-01_BE7200-User-Research/docs/data/analyzed/llm_<dataset>_<YYYYMMDD>.csv`（含 sentiment / theme / persona）
 - **预计耗时**：4h（~3500 条 × 1h/1000 条 = 3.5h + 校准 0.5h）
 - **推荐工具**：Claude API
 - **基于 P-pattern**：P10
@@ -122,7 +125,7 @@
 ### U8. 决策点统计（ID / 网口 / USB 三个决策点偏好表）
 
 - **输入**：U7 输出
-- **输出产物**：3 份偏好表（各决策点的选项支持率 / 情感分布 / 桌面 vs 旅行场景对比）
+- **输出产物**：`DT-2026-04-28-01_BE7200-User-Research/docs/data/analyzed/preference_3decisions_<YYYYMMDD>.csv`（3 份偏好表合一）
 - **预计耗时**：3h（3 决策点 × 1h）
 - **推荐工具**：Python + Pandas + matplotlib
 - **基于 P-pattern**：内嵌
@@ -134,7 +137,7 @@
 ### U9. Flint2 上代用户参考组归类
 
 - **输入**：U7 输出中 `legacy_user = true` 的子集
-- **输出产物**：`flint2_reference_summary.md`（半页）
+- **输出产物**：`DT-2026-04-28-01_BE7200-User-Research/docs/data/analyzed/flint2_reference_summary_<YYYYMMDD>.md`（半页）
 - **预计耗时**：0.5h（按 alignment 第 7 章 Q7=B 的"+0.5h"）
 - **推荐工具**：Python + 手工归纳
 - **基于 P-pattern**：内嵌
@@ -146,7 +149,7 @@
 ### U10. 章节撰写（HTML 报告 4 章）
 
 - **输入**：U8 + U9 输出
-- **输出产物**：`reports/DT-2026-04-28-01/index.html`，4 章：执行摘要 / ID 偏好 / 网口偏好 / USB 偏好（含 Flint2 参考组放在执行摘要内）
+- **输出产物**：`DT-2026-04-28-01_BE7200-User-Research/DT-2026-04-28-01_BE7200-User-Research.html`（在 ticket 根，不在 docs 下；4 章：执行摘要 / ID 偏好 / 网口偏好 / USB 偏好，Flint2 参考组放在执行摘要内）
 - **预计耗时**：6h（4 章 × 1.5h；含 html-report 模板套用 0.5h）
 - **推荐工具**：html-report skill + ECharts
 - **基于 P-pattern**：P13
@@ -163,16 +166,22 @@
 
 ## 4. 依赖图
 
-```
-U1 ──┐
-U2 ──┼─→ U6 ─→ U7 ──→ U8 ──┐
-U3 ──┤                      ├─→ U10
-U4 ──┘                  U9 ─┘
-                ↑
-U5 (依赖 U2 抽样，与 U3/U4/U1 后期并行)
+```mermaid
+flowchart LR
+    U1 --> U6
+    U2 --> U6
+    U3 --> U6
+    U4 --> U6
+    U5 --> U6
+    U2 -.抽样语料.-> U5
+    U6 --> U7
+    U7 --> U8
+    U7 --> U9
+    U8 --> U10
+    U9 --> U10
 ```
 
-环检查：✅ 无环
+环检查：✅ 无环。
 
 ---
 
@@ -182,7 +191,7 @@ U5 (依赖 U2 抽样，与 U3/U4/U1 后期并行)
 - **2 人并行（典型）**：关键路径 = max(U1, U2, U3, U4, U5) → U6 → U7 → max(U8, U9) → U10 = 5 + 1.5 + 4 + 3 + 6 = **19.5h**
 - **3 人最大并行**：关键路径 ≈ **18h**（U10 4 章可由 3 人写完）
 
-**与 alignment_v2 一致性自检（Rev 2）**：
+**与 alignment_v2 一致性自检（模式 A · Rev 3）**：
 
 - alignment_v2 第三章选定档：**精准版 30–36h**
 - 本 Plan 总 h = **30h**
@@ -202,19 +211,19 @@ U5 (依赖 U2 抽样，与 U3/U4/U1 后期并行)
 
 ### M1：数据全部到位（≈ 启动后 5–7h，2 人并行视角）
 - 包含：U1 / U2 / U3 / U4 / U5
-- 验收：4 个数据源 CSV 落盘；场景词典 v1 ready
+- 验收：4 个数据源 CSV 落盘在 `docs/data/raw/<source>/`；场景词典 v1 落盘在 `docs/data/analyzed/`
 
 ### M2：标注 + 语义分析完成（≈ 启动后 10–12h）
 - 包含：U6 / U7
-- 验收：labeled_*.csv 与 llm_*.csv 落盘；100 条人工 vs LLM 一致性 ≥ 80%
+- 验收：`labeled_*.csv` 与 `llm_*.csv` 落盘在 `docs/data/analyzed/`；100 条人工 vs LLM 一致性 ≥ 80%
 
 ### M3：统计完成（≈ 启动后 13–14h）
 - 包含：U8 / U9
-- 验收：3 份决策点偏好表 + Flint2 半页摘要
+- 验收：3 份决策点偏好表 + Flint2 半页摘要均落 `docs/data/analyzed/`
 
 ### M4：HTML 报告交付（≈ 启动后 19–20h）
 - 包含：U10
-- 验收：浏览器渲染正常；4 章完整；与 alignment_v2 第 6 章 MVP 承诺对齐
+- 验收：`DT-2026-04-28-01_BE7200-User-Research.html` 落 ticket 根；浏览器渲染正常；4 章完整；与 alignment_v2 第 6 章 MVP 承诺对齐
 
 ---
 
@@ -244,5 +253,7 @@ U5 (依赖 U2 抽样，与 U3/U4/U1 后期并行)
 - **U 之间依赖图无环**，由 U1–U4 并行 → U6 汇聚 → U7 → U8/U9 并行 → U10 收尾。
 - **不分配人名**，让组员在 IM 下抢单：例如"我接 U1 + U6"、"我接 U2 + U7"。
 - **风险登记直接关联 U**，让抢单时就能看到"接 U2 要小心 Reddit 限流"。
+- **路径全在 ticket 单根下**：`DT-2026-04-28-01_BE7200-User-Research/docs/data/raw/<source>/...` 与 `docs/data/analyzed/...`，与 ticket-aligner / html-report / delivery-message 等同根；ticket 完整可独立打包归档。
+- **依赖图用 mermaid**：而不是 ASCII 框图，便于 html-report 报告里直接复用同一份 mermaid 块。
 
 skill 在生成此类 Plan 时**不要**让 U 数膨胀（避免 30+ 个 U），也**不要**让 U 颗粒度过粗（避免单 U > 8h）。10 个左右的 U 是中等 ticket 的甜点区。
