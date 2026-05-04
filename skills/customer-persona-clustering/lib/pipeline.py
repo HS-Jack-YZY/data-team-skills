@@ -57,6 +57,50 @@ def get_api_key(env_name: str) -> str:
     return key
 
 
+# C8: Validate required config keys at startup so typos fail fast, not after hours of API calls.
+def validate_config(cfg: dict) -> None:
+    required_top = [
+        "product_name", "input_csv", "text_column", "output_dir",
+        "embedding", "persona_generation", "clustering", "meta_merge",
+    ]
+    missing = [k for k in required_top if k not in cfg]
+    if missing:
+        sys.exit(f"✗ config 缺顶层字段: {missing}")
+    required_nested = {
+        "embedding": ["provider", "model", "api_key_env"],
+        "persona_generation": ["model"],
+        "clustering": ["umap", "hdbscan"],
+        "meta_merge": ["ward", "llm"],
+    }
+    for parent, children in required_nested.items():
+        sub = cfg[parent]
+        if not isinstance(sub, dict):
+            sys.exit(f"✗ config[{parent}] 必须是 dict, 实际 {type(sub).__name__}")
+        sub_missing = [k for k in children if k not in sub]
+        if sub_missing:
+            sys.exit(f"✗ config[{parent}] 缺字段: {sub_missing}")
+
+
+# C6: Refuse output_dir paths in system directories to prevent accidental / malicious writes.
+def safe_output_dir(path_str: str) -> Path:
+    p = Path(path_str).expanduser().resolve()
+    forbidden = (
+        "/etc", "/usr", "/bin", "/sbin", "/System",
+        "/Library/System", "/var", "/private/etc", "/private/var",
+    )
+    s = str(p)
+    for prefix in forbidden:
+        if s == prefix or s.startswith(prefix + "/"):
+            sys.exit(f"✗ output_dir={s} 落在系统目录 {prefix}, 拒绝")
+    return p
+
+
+# C5: Escape curly braces in user-supplied strings before .format(), preventing KeyError on literal
+# {x} and prompt-injection via crafted placeholders matching template variable names.
+def _escape_format(s: str) -> str:
+    return s.replace("{", "{{").replace("}", "}}")
+
+
 # ============================================================================
 # Stage 1: load_filter
 # ============================================================================
@@ -196,7 +240,11 @@ async def stage_persona(cfg: dict, filtered_path: Path, out_dir: Path) -> Path:
     pg = cfg["persona_generation"]
     workers = pg.get("workers", 2)
     sem = anyio.Semaphore(workers)
-    counter = {"n": 0}
+    # C4: track failures separately from completions so a high failure rate aborts the run
+    # rather than silently producing a corpus of empty personas.
+    counter = {"n": 0, "failed": 0}
+    fail_threshold_pct = float(pg.get("fail_abort_pct", 0.20))
+    fail_threshold_min = int(pg.get("fail_abort_min", 10))
     lock = anyio.Lock()
     start = time.time()
 
@@ -204,31 +252,48 @@ async def stage_persona(cfg: dict, filtered_path: Path, out_dir: Path) -> Path:
         text = str(row[text_col])[:2000]
         rec = by_id.get(row[id_col]) if id_col else None
         ctx = assemble_context(rec, by_id, by_post, cfg) if rec else "(无上下文)"
+        # C5: escape user-supplied {ctx, text} so literal {x} or crafted placeholders don't break .format()
         prompt = template.format(
             product_name=cfg.get("product_name", "通用产品"),
             product_category=cfg.get("product_category", "通用品类"),
-            context_block=ctx,
-            comment_body=text,
+            context_block=_escape_format(ctx),
+            comment_body=_escape_format(text),
         )
         async with sem:
+            failed_this_call = False
             try:
                 persona = await call_claude_persona(prompt, cfg)
                 persona = clean_persona(persona)
                 if len(persona) < 30:
                     persona = ""
+            except anyio.get_cancelled_exc_class():
+                # C4: never swallow cancellation — let structured concurrency tear down cleanly
+                raise
             except Exception as e:
                 print(f"  ✗ idx={idx} 失败: {str(e)[:80]}")
                 persona = ""
+                failed_this_call = True
             async with lock:
                 counter["n"] += 1
+                if failed_this_call:
+                    counter["failed"] += 1
                 done[idx] = persona
+                # C4: abort if too many failures — protects against silent corpus loss
+                if (
+                    counter["failed"] > fail_threshold_min
+                    and counter["failed"] / max(counter["n"], 1) > fail_threshold_pct
+                ):
+                    raise RuntimeError(
+                        f"persona 生成失败率超阈值: {counter['failed']}/{counter['n']} "
+                        f"(>{fail_threshold_pct:.0%}), 中止以避免静默丢数据"
+                    )
                 if counter["n"] % 20 == 0:
                     pd.DataFrame([
                         {"__row_idx": k, "persona": v} for k, v in done.items()
                     ]).to_parquet(progress_path)
                 elapsed = time.time() - start
                 rate = counter["n"] / elapsed if elapsed > 0 else 0
-                print(f"  [{counter['n']}/{len(todo)}] idx={idx} ({rate:.2f}/s)")
+                print(f"  [{counter['n']}/{len(todo)}] idx={idx} ({rate:.2f}/s, 失败累计 {counter['failed']})")
 
     async with anyio.create_task_group() as tg:
         for idx, row in todo:
@@ -238,7 +303,11 @@ async def stage_persona(cfg: dict, filtered_path: Path, out_dir: Path) -> Path:
     df.to_parquet(out_path)
     if progress_path.exists():
         progress_path.unlink()
-    print(f"  ✓ {out_path}: {(df['persona'] != '').sum()} 有效 persona")
+    valid_count = int((df["persona"] != "").sum())
+    print(
+        f"  ✓ {out_path}: {valid_count} 有效 persona, 失败 {counter['failed']} 条 / "
+        f"总 {counter['n']} 调用"
+    )
     return out_path
 
 
@@ -296,18 +365,29 @@ def embed_voyage(texts: list[str], cfg: dict) -> np.ndarray:
     out = []
     for i in range(0, len(texts), bs):
         batch = texts[i:i+bs]
+        last_err = None
+        success = False
         for attempt in range(5):
             try:
                 r = client.embed(batch, model=cfg["model"], input_type="document")
                 out.extend(r.embeddings)
+                success = True
                 break
             except Exception as e:
+                last_err = e
                 wait = 30 * (attempt + 1)
-                print(f"    voyage 失败, 睡 {wait}s ({e})")
+                print(f"    voyage 失败 attempt {attempt + 1}/5, 睡 {wait}s ({e})")
                 time.sleep(wait)
+        if not success:
+            # C1: never silently drop a batch — would misalign every downstream row to the wrong embedding
+            raise RuntimeError(
+                f"voyage embedding batch [{i}:{i+bs}] 5 次重试后失败, 最后错误: {last_err}"
+            )
         if i + bs < len(texts):
             time.sleep(sleep_s)
         print(f"    [{i+len(batch)}/{len(texts)}]")
+    if len(out) != len(texts):  # C1: defensive — should never trip given the raise above
+        raise RuntimeError(f"voyage embedding 行数不匹配: {len(out)} vs {len(texts)}")
     return np.array(out)
 
 
@@ -478,6 +558,7 @@ async def stage_meta_llm(cfg: dict, clusters_path: Path, out_dir: Path) -> Path:
         col = f"ward_meta_{k}"
         if col not in df.columns:
             print(f"  ⚠ {col} 缺失, 跳过")
+            prev_labels = None  # C2: 跳档后 fail-closed, 不让下一档错把祖父档当父档
             continue
 
         # 每个 ward 组的成员 (hdbscan ids)
@@ -536,11 +617,13 @@ async def stage_meta_llm(cfg: dict, clusters_path: Path, out_dir: Path) -> Path:
                     f"  ward 组 {wid} ← 父{pid} ({prev_labels.get(pid, '?')})\n"
                 )
 
+        # C5: escape user-influenced data (persona text in summaries, prior-k names in parent_context)
+        # so literal {x} or crafted placeholders don't break .format() or hijack the template
         prompt = template.format(
             product_name=cfg.get("product_name", "通用产品"),
             target_k=str(k),
-            cluster_summaries="\n".join(summaries),
-            parent_context=parent_context,
+            cluster_summaries=_escape_format("\n".join(summaries)),
+            parent_context=_escape_format(parent_context),
         )
 
         print(f"\n  ── k={k} 标 {len(ward_to_members)} 组 ──")
@@ -548,6 +631,7 @@ async def stage_meta_llm(cfg: dict, clusters_path: Path, out_dir: Path) -> Path:
             raw = await call_claude_meta(prompt, cfg)
         except Exception as e:
             print(f"    ✗ Claude 调用失败 k={k}: {str(e)[:120]}")
+            prev_labels = None  # C2: 失败档不当父档传给下档
             continue
         (out_dir / f"meta_llm_raw_k{k}.txt").write_text(raw)
 
@@ -555,6 +639,7 @@ async def stage_meta_llm(cfg: dict, clusters_path: Path, out_dir: Path) -> Path:
             data = parse_llm_json(raw)
         except Exception as e:
             print(f"    ✗ 解析失败 k={k}: {str(e)[:120]}")
+            prev_labels = None  # C2: 失败档不当父档传给下档
             continue
 
         labeled = []
@@ -576,6 +661,7 @@ async def stage_meta_llm(cfg: dict, clusters_path: Path, out_dir: Path) -> Path:
 
         if not labeled:
             print(f"    ✗ k={k} 无有效命名, 跳过")
+            prev_labels = None  # C2: 失败档不当父档传给下档
             continue
 
         entry: dict = {"labels": labeled}
@@ -628,8 +714,52 @@ async def stage_meta_llm(cfg: dict, clusters_path: Path, out_dir: Path) -> Path:
     return out_json
 
 
+def _fix_inline_quotes(s: str) -> str:
+    """C3: 把 JSON 字符串值内部的 ASCII 双引号替换成中文全角 ", 同时保留作为 key/value 边界的
+    结构性 quote. 用一个轻量状态机: 进入字符串后, 如果遇到的 " 后面紧跟 (可选空白 + ,/:/}/]/末尾)
+    就当结构性闭合, 否则一律是内嵌, 替换为 ". 处理 \\\\ 和 \\" 转义以避免误判.
+    """
+    out: list[str] = []
+    i, n = 0, len(s)
+    in_string = False
+    while i < n:
+        c = s[i]
+        if not in_string:
+            out.append(c)
+            if c == '"':
+                in_string = True
+            i += 1
+            continue
+        # in_string == True
+        if c == "\\" and i + 1 < n:
+            out.append(s[i:i + 2])  # 保留转义序列
+            i += 2
+            continue
+        if c != '"':
+            out.append(c)
+            i += 1
+            continue
+        # 候选闭合 quote: 看后面下一个非空白字符
+        j = i + 1
+        while j < n and s[j] in " \t\n\r":
+            j += 1
+        if j >= n or s[j] in ",:}]":
+            out.append(c)        # 结构性闭合
+            in_string = False
+            i += 1
+        else:
+            out.append("”")      # 内嵌 quote, 替换为中文全角
+            i += 1
+    return "".join(out)
+
+
 def parse_llm_json(raw: str) -> dict:
-    """鲁棒地从 LLM 输出抽 JSON. 容错: markdown 代码块 / 中文标点 / 末尾逗号."""
+    """鲁棒地从 LLM 输出抽 JSON. 6 步兜底:
+       1) 去 markdown 代码块  2) 提取 {...}  3) 直接 json.loads
+       4) JSON-aware 修内嵌 ASCII 双引号 (_fix_inline_quotes) 后再 json.loads
+       5) 全角标点→半角 + 去尾随逗号后 json.loads
+       6) ast.literal_eval 兜底 (允许 Python 风格的 dict)
+    """
     # 1. 去掉 markdown 代码块包裹
     s = raw.strip()
     s = re.sub(r"^```(?:json)?\s*", "", s)
@@ -647,9 +777,11 @@ def parse_llm_json(raw: str) -> dict:
     except json.JSONDecodeError:
         pass
 
-    # 4. 把字符串值里嵌套的 ASCII 双引号 (LLM 在中文 rationale 里写 "DIY" 这种) 转成
-    #    中文全角双引号, 防止破坏 JSON 结构. 规则: 仅当 " 两侧都是非 ASCII 字符时替换
-    s_quote_fixed = re.sub(r'(?<=[^\x00-\x7F])"(?=[^\x00-\x7F])', "”", s)
+    # C3: 4. JSON-aware 扫描器修复字符串值里嵌套的 ASCII 双引号 (LLM 在中文 rationale 里写 "DIY"
+    # 这种). 上一版用纯正则 (?<=非ASCII)"(?=非ASCII), 漏掉 `:"DIY"品类` 等"前 ASCII 后 CJK"的边
+    # 界情况. 现在跟踪是否在字符串内, 真正的结束 quote 是后面紧跟 ,/}/]/: 或行尾的 quote, 其余
+    # 一律视为内嵌, 替换为中文全角 ".
+    s_quote_fixed = _fix_inline_quotes(s)
     try:
         return json.loads(s_quote_fixed)
     except json.JSONDecodeError:
@@ -852,7 +984,8 @@ def main():
     args = parser.parse_args()
 
     cfg = load_config(Path(args.config), preset=args.preset)
-    out_dir = Path(cfg["output_dir"])
+    validate_config(cfg)                          # C8: fail fast on missing keys
+    out_dir = safe_output_dir(cfg["output_dir"])  # C6: reject system-directory writes
     ensure_dir(out_dir)
     stages = args.stages.split(",")
 
