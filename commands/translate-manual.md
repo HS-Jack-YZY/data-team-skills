@@ -1,9 +1,18 @@
 ---
 name: translate-manual
-description: "Translate GL.iNet product manuals (quick start guides, user manuals) from English to German, French, Spanish (Peninsular), or Polish. Hardcoded with v2.0 product-team-confirmed decisions for terminology, UI strings, formatting, compliance text, tone, and product names — plus v2.1 specialist-confirmed linguistic decisions for case handling, native typography, and Slavic grammar interaction. Use this skill whenever the user asks to translate a product manual, even if they only mention 'translate' without specifying it's a manual — the rules here apply to any GL.iNet product documentation."
-version: "2.1"
-effective_date: "2026-04-29"
+description: >
+  Translate GL.iNet product manuals (quick start guides, user manuals) from English to German,
+  French, Spanish (Peninsular), or Polish. Hardcoded with v2.0 product-team-confirmed decisions
+  for terminology, UI strings, formatting, compliance text, tone, and product names — plus v2.1
+  specialist-confirmed linguistic decisions for case handling, native typography, and Slavic
+  grammar interaction. Invoke this command (`/data-team-skills:translate-manual`) whenever the
+  user asks to translate a product manual, even if they only mention 'translate' without
+  specifying it's a manual — the rules here apply to any GL.iNet product documentation.
 ---
+
+> **Spec metadata** — v2.1, effective 2026-04-29.
+> - **Decisions**: v2.0 product team Q1–Q18 (business / brand / compliance / regional) + v2.1 specialist agents Q19–Q24 (linguistic competence, native typography, Slavic grammar)
+> - **Linguist specialists**: De (Duden / DIN 5008) · Fr (Académie / AFNOR / Imprimerie nationale) · Sp (RAE / Fundéu / AENOR) · Pl (PWN / industry corpus)
 
 # GL.iNet Product Manual Translation
 
@@ -16,9 +25,9 @@ Both layers apply unconditionally. v2.1 specialist authority overrides v2.0 only
 
 ## Supported Target Languages
 
-Currently locked to: **German (De)**, **French (Fr)**, **Spanish-Peninsular (Sp)**, **Polish (Pl)**.
+**Approved (v2.1 hardcoded decisions apply in full)**: German (De), French (Fr), Spanish-Peninsular (Sp), Polish (Pl).
 
-Other languages (Italian, Japanese, etc.): apply structural rules + v2.0 business decisions; flag in `_report.md` that v2.1 specialist linguistic rules are not approved for that language.
+**Other languages** (Italian, Japanese, Portuguese, etc.): apply structural rules + v2.0 business decisions only; v2.1 specialist linguistic rules are NOT approved. The orchestrator MUST log every such run to `_unhandled-categories.md` so the maintainer can decide whether to commission a specialist round for that language.
 
 ## Input: $ARGUMENTS
 
@@ -36,10 +45,13 @@ If no arguments provided, ask only for source path and target language. Do **NOT
 4. **Apply Rule 5d typography auto-fix pass** (per-language, mandatory before save)
 5. **Self-check** against the Quality Checklist
 6. **Save** as `<source-dir>/<source-name>-<lang>.md`
+7. **Emit Final Report** with `UNHANDLED CATEGORIES: N` as its first line (see "Final Report" section near end of this file)
 
 ---
 
 ## 🔒 Hardcoded Decision Blocks (NEVER OVERRIDE)
+
+> **Cross-file maintenance note**: Decision Blocks 1–7 below are duplicated (in a compressed form) inside `translate-compare.md` Step 2c's "Hardcoded Translation Decisions" block. Any edit to a decision here MUST be mirrored there — otherwise the multi-agent command will translate against stale rules. There is no automated parity check.
 
 ### Decision Block 1: Terminology Map (v2.0 Q1–Q4, Q17, Q18)
 
@@ -123,7 +135,7 @@ Tokens listed in Decision Block 1 (Router, Wi-Fi, Firmware, Bluetooth, Ethernet,
   - **Cross-section consistency**: descriptor must be byte-identical to any product-card occurrence elsewhere.
 - **German DoC compound formation order** (v2.1): `[Tragbar/Mobil if present] + [BandClass: Dualband/Dreiband] + [Wi-Fi standard] + [Use prefix: Reise- if Travel] + Router`. Hyphenate each foreign-origin element; preserve internal space of `Wi-Fi 7`. Example: source `[Dual-band Wi-Fi 7 Travel Router, GL-BE3600]` → `[Dualband-Wi-Fi 7-Reise-Router, GL-BE3600]`.
 - **Product attribute adjectives**: fully localize per Rule 7c.
-- **Warranty period clauses**: translate as-is. Do NOT introduce market-specific differentiation. Flag in `_report.md` that warranty wording is currently market-uniform pending future legal review.
+- **Warranty period clauses**: translate as-is. Do NOT introduce market-specific differentiation. Flag in `_unhandled-categories.md` that warranty wording is currently market-uniform pending future legal review.
 - **Company name** (`GL TECHNOLOGIES (HONG KONG) LIMITED`): never translate, verbatim in all languages.
 
 ### Decision Block 5: Tone (v2.0 Q16)
@@ -373,6 +385,7 @@ When invoked via plugin namespace:
 For each translation produce:
 - `<source-dir>/<source-name>-<lang>.md` — translated document
 - `<source-dir>/_source-typos.md` (cumulative across runs) — source corrections + typography normalizations applied per Rule 5d
+- `<source-dir>/_unhandled-categories.md` (cumulative; created on demand) — entries for novel UI categories, non-approved target languages, or warranty-class flags encountered during this run; consumed by the Final Report's `UNHANDLED CATEGORIES: N` first-line metric
 
 ---
 

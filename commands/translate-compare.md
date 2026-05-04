@@ -1,9 +1,19 @@
 ---
 name: translate-compare
-description: "Multi-agent translation with comparison and optimization for GL.iNet product manuals. Spawns 3 agents per target language (2 Sonnet with distinct style briefs — faithful vs. idiomatic — plus 1 Opus polished) to translate in parallel using v2.1 hardcoded decisions, then runs a per-language Opus merger, and finally a cross-language Opus coordinator. Hardcoded with both v2.0 product-team decisions (business/brand/compliance) and v2.1 specialist-agent decisions (linguistic competence, native typography). Does not pause to ask the user mid-translation."
-version: "2.1"
-effective_date: "2026-04-29"
+description: >
+  Multi-agent translation with comparison and optimization for GL.iNet product manuals. Spawns
+  3 agents per target language (2 Sonnet with distinct style briefs — faithful vs. idiomatic —
+  plus 1 Opus polished) to translate in parallel using v2.1 hardcoded decisions, then runs a
+  per-language Opus merger, and finally a cross-language Opus coordinator. Hardcoded with both
+  v2.0 product-team decisions (business/brand/compliance) and v2.1 specialist-agent decisions
+  (linguistic competence, native typography). Invoke this command
+  (`/data-team-skills:translate-compare`) for high-quality release-grade translation; does not
+  pause to ask the user mid-translation.
 ---
+
+> **Spec metadata** — v2.1, effective 2026-04-29.
+> - **Decisions**: v2.0 product team Q1–Q18 (business / brand / compliance / regional) + v2.1 specialist agents Q19–Q24 (linguistic competence, native typography, Slavic grammar)
+> - **Linguist specialists**: De (Duden / DIN 5008) · Fr (Académie / AFNOR / Imprimerie nationale) · Sp (RAE / Fundéu / AENOR) · Pl (PWN / industry corpus)
 
 # Multi-Agent Translation with Comparison (v2.1 Hardcoded-Decisions Edition)
 
@@ -89,13 +99,15 @@ Log to `{output-dir-1}/_unhandled-categories.md`. Apply closest existing decisio
 
 #### 2c. Hardcoded Translation Decisions block (v2.1)
 
+> **Cross-file maintenance note**: The block below is a compressed mirror of `translate-manual.md` Decision Blocks 1–7. Any edit to a decision in either file MUST be mirrored to the other — otherwise the multi-agent command (this file) and the single-agent command will diverge. There is no automated parity check.
+
 The following block is **inlined verbatim** into every translation agent's prompt at Step 3.
 
 ```
 ## TRANSLATION DECISIONS (HARDCODED — NEVER OVERRIDE)
-Source: _product-team-decisions.md v2 (signed off 2026-04-29) + _v2.1-synthesis.md (specialist agents, 2026-04-29)
+Source: hardcoded inline below (v2.0 product team Q1–Q18 + v2.1 specialist agents Q19–Q24, signed off 2026-04-29; full audit retained out-of-band by maintainer).
 
-### Terminology (apply to all 4 languages)
+### Terminology (apply to the 4 approved languages: De / Fr / Sp / Pl; for other target languages — It / Pt / Ja / Ko / Zh / Ar / Th / Tr / Nl / Ru — apply structural rules only and log to `{output-dir-1}/_unhandled-categories.md` so the maintainer can decide whether to commission a specialist round)
 - Wi-Fi → Wi-Fi (verbatim)
 - Router → German "Router", French "routeur", Spanish "Router", Polish "Router"
 - Email → German "E-Mail", French "E-mail", Spanish "Correo", Polish "E-mail"
@@ -226,7 +238,14 @@ This block is large but it is the **single source of truth** for every agent. Do
 
 ### Step 3: Launch Translation Agents in Parallel
 
-Read the full translation rules from the **sibling `translate-manual` command file** (co-located in this plugin's `commands/` directory — when installed via marketplace, both commands resolve from the same plugin cache path; in local-project install they share `.claude/commands/`). The orchestrator can locate it the same way the present command was loaded.
+Read the full translation rules from the sibling `translate-manual` command file. To locate it, try these paths in order until one resolves:
+
+1. `${CLAUDE_PLUGIN_ROOT}/commands/translate-manual.md` — when running under a plugin install (env var set by Claude Code)
+2. `~/.claude/plugins/cache/HS-Jack-YZY/data-team-skills/commands/translate-manual.md` — marketplace cache fallback
+3. `.claude/commands/translate-manual.md` — local-project install
+4. `commands/translate-manual.md` (relative to repo root) — dev-clone of `data-team-skills`
+
+The "Translation Workflow", "Hardcoded Decision Blocks 1–7", "Translation Rules 1–7", and "Quality Checklist" sections of that file are the canonical source — paste them verbatim into each Step-3 agent prompt below; do not paraphrase. If none of the paths resolve, hard-stop and surface `ERROR: cannot locate translate-manual.md sibling file` to the user rather than silently proceeding with the Step 2c block alone.
 
 For each target language, spawn 3 agents (**2 Sonnet + 1 Opus**) in a single message.
 
@@ -292,7 +311,7 @@ Each merger:
 3. Verifies Hardcoded Decisions compliance (especially v2.1 items: Spanish sentence case, Polish Firmware fallback, per-language typography pass)
 4. Saves Final + brief `_report.md`
 
-Save Final as: `{output-dir}/{Product}-{TargetLanguage}-Final.md`
+Save Final as: `{output-dir}/{Product}-{TargetLangCode}-Final.md` (use the language **code** from the Step 1 table — e.g., `BE3600-Fr-Final.md`, not `BE3600-French-Final.md` — to stay consistent with the `{Product}-{SourceLangCode}2{TargetLangCode}/` directory scheme)
 
 ---
 

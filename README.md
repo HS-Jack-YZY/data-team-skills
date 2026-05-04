@@ -4,7 +4,7 @@ GL.iNet 数据组共用的 Claude Code Skills 与 Commands 合集。
 
 ## 这是什么
 
-一个公开的 Claude Code [Skills](https://docs.claude.com/en/docs/claude-code/skills) 仓库，汇总数据组日常工作中反复用到的模板、报告风格、分析流程等。任何装了 Claude Code 的人都可以 clone 后直接把 skill 挂到自己的 `~/.claude/skills/` 使用。
+一个公开的 Claude Code [Skills](https://docs.claude.com/en/docs/claude-code/skills) 与 [Slash Commands](https://docs.claude.com/en/docs/claude-code/slash-commands) 仓库，汇总数据组日常工作中反复用到的模板、报告风格、分析流程，以及共享的 slash command。任何装了 Claude Code 的人都可以通过 plugin marketplace 一键安装（推荐），或 clone 后手工挂载 `skills/` / `commands/` 到 `~/.claude/`。
 
 ## 目录
 
@@ -56,7 +56,7 @@ GL.iNet 数据组共用的 Claude Code Skills 与 Commands 合集。
 - `translate-manual`：单 agent，按 v2.1 硬编码决策直接出一版翻译，适合内部速翻。
 - `translate-compare`：每语言 spawn 3 个 agent（2 Sonnet + 1 Opus）+ Opus merger + 跨语言协调，适合发布版高质量翻译。N 个目标语言 = `4N + (N>1 ? 1 : 0)` 个 agent。
 
-参数固定为"源文件路径 + 目标语言"。**不会**停下来询问 UI 字符串、术语、合规、排版——所有决策在命令里硬编码。决策来源（v2.0 product team Q1–Q18 + v2.1 specialist agents Q19–Q24，2026-04-29）记录在源项目 `GL-iNet/others/Translation/`，不随 marketplace 分发。
+参数固定为"源文件路径 + 目标语言"。**不会**停下来询问 UI 字符串、术语、合规、排版——所有决策在命令里硬编码。决策来源（v2.0 product team Q1–Q18 + v2.1 specialist agents Q19–Q24，2026-04-29）由 maintainer 私存，不随 marketplace 分发；如需翻阅细节联系 GL.iNet 数据组 maintainer。
 
 ### 从旧的手工 symlink 方式迁移
 

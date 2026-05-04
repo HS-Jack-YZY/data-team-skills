@@ -11,7 +11,7 @@
   "plugins": [
     {
       "name": "data-team-skills",
-      "description": "GL.iNet 数据组共用 skills 与 commands 合集。新增条目需在本 manifest 的 skills / commands 数组里显式注册，未列入的不会被加载。",
+      "description": "GL.iNet 数据组共用 skills 与 commands 合集。skills 通过本 manifest 的 skills 数组显式注册（未列入不会加载）；commands 通过 commands/*.md 自动发现。",
       "source": "./",
       "strict": false,
       "skills": [
