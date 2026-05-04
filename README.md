@@ -82,7 +82,9 @@ ln -s "$(pwd)/skills/html-report" ~/.claude/skills/html-report
 
 见 [CONTRIBUTING.md](./CONTRIBUTING.md)。简而言之：一个 skill 一个目录，含 `SKILL.md`（带 frontmatter 的 `name` 和 `description`），大资源放 `assets/`，长文档放 `references/`。
 
-> ⚠️ **关键一步**：新增 skill 后必须把路径同步追加到 `.claude-plugin/marketplace.json` 的 `plugins[0].skills` 数组，否则已安装的同事不会收到。本 marketplace 走显式注册，不会按目录自动扫描——这是有意设计，便于控制哪些 skill 暴露给团队。
+> ⚠️ **关键一步（仅适用于 skill）**：新增 **skill** 后必须把路径同步追加到 `.claude-plugin/marketplace.json` 的 `plugins[0].skills` 数组，否则已安装的同事不会收到。skills 走显式注册——这是有意设计，便于控制哪些 skill 暴露给团队。
+>
+> **commands 走自动发现**，无需 manifest 注册：把 `<command-name>.md`（带 frontmatter 的 `name` 与 `description`）扔到 `commands/` 目录即可，Claude Code 插件 loader 会自动加载。本 marketplace 这样设计是因为 Claude Code plugin schema 不接受 `plugins[].commands` 字段（实测：5 个参考 marketplace 共 150+ plugins 零声明）。
 
 ## License
 

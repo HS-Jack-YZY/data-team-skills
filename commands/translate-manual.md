@@ -380,7 +380,7 @@ For each translation produce:
 
 v2.0 (product team, 2026-04-29) + v2.1 (specialist agents: De Duden/DIN, Fr Académie/AFNOR, Sp RAE/Fundéu, Pl PWN, 2026-04-29).
 
-完整决策审计文档（`_product-team-decisions.md` / `_v2.1-synthesis.md` / `_v2.1-decisions-{De,Fr,Sp,Pl}-specialist.md` / `_skill-v2*-changes.md`）保留在源项目 `GL-iNet/others/Translation/`，未随 marketplace 分发。如需翻阅决策细节或就单条决策提出 clinic round 升级，联系 maintainer。
+详细决策审计文档由 maintainer 私存，未随 marketplace 分发。如需翻阅决策细节或就单条决策提出 clinic round 升级，联系 GL.iNet 数据组 maintainer。
 
 If a future translation surfaces a case **not covered** by the decisions above:
 1. Apply the closest existing decision and proceed
@@ -388,3 +388,13 @@ If a future translation surfaces a case **not covered** by the decisions above:
 3. Recommend a follow-up Q in the next clinic round (Tier 1 product team OR Tier 2 specialist agent)
 
 Do NOT pause translation to ask the user.
+
+## Final Report
+
+After saving the translated document, the post-translation summary returned to the user MUST start with:
+
+```
+UNHANDLED CATEGORIES: N
+```
+
+where `N` is the number of entries logged to `_unhandled-categories.md` during this run (output `0` if the file is empty or absent). When `N > 0`, append on the same line: ` — STATUS: REQUIRES MAINTAINER REVIEW`. After this line, briefly report: target language, output file path, and the source-typo / typography-fix count from `_source-typos.md`. This makes the unhandled-category signal the loudest output, not a buried tail comment.

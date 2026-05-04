@@ -20,10 +20,6 @@
         "./skills/ticket-aligner",
         "./skills/ticket-decomposer",
         "./skills/social-reviews-analyzer"
-      ],
-      "commands": [
-        "./commands/translate-manual.md",
-        "./commands/translate-compare.md"
       ]
     }
   ]

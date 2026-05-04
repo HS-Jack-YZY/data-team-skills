@@ -24,7 +24,7 @@ If no arguments provided, ask only for source path and target language(s). Do NO
 | Step | Action | Agents | User confirmation? |
 |---|---|---|---|
 | 1 | Parse input, set up output dirs | 0 | No |
-| 2 | Pre-flight gap-detection scan | 0 | Only if a NEW UI category appears (rare) |
+| 2 | Pre-flight gap-detection scan; log any NEW UI category to `_unhandled-categories.md` and proceed | 0 | No |
 | 3 | Spawn 3 translation agents per language | 3 × N | No |
 | 4 | Spawn 1 Opus merger per language | N | No |
 | 5 | Spawn 1 Opus cross-language coordinator (multi-language only) | 1 | No |
@@ -349,13 +349,20 @@ After "Done", main assistant briefly reads `_cross-language-report.md` and 1-2 t
 
 ### Step 6: Report
 
-Concise summary covering each target language:
+**The first line of this report MUST be**:
+
+```
+UNHANDLED CATEGORIES: N
+```
+
+where `N` is the number of entries logged to `_unhandled-categories.md` during this run (output `0` if the file is empty or absent). When `N > 0`, append on the same line: ` — STATUS: REQUIRES MAINTAINER REVIEW`. This makes the unhandled-category signal the loudest output, not a buried bullet.
+
+Then provide a concise summary covering each target language:
 - Which agent contributed most (A=sonnet/faithful, B=sonnet/idiomatic, C=opus/polished)
 - Key A-vs-B-vs-C differences (from `_report.md`)
 - v2.1 Hardcoded Decisions compliance: confirm each of Q19–Q24 was applied per `_cross-language-report.md`
 - Cross-language inconsistencies the coordinator fixed
 - Source typos and typography normalizations (`_source-typos.md`)
-- Any unhandled new categories (`_unhandled-categories.md`)
 - Path to all output directories and Final files
 
 ---
@@ -375,7 +382,7 @@ Total for N=4: 12 + 4 + 1 = **17 agents**.
 
 v2.0 (product team, 2026-04-29) + v2.1 (specialist agents: De Duden/DIN, Fr Académie/AFNOR, Sp RAE/Fundéu, Pl PWN, 2026-04-29).
 
-完整决策审计文档（`_product-team-decisions.md` / `_v2.1-synthesis.md` / `_v2.1-decisions-{De,Fr,Sp,Pl}-specialist.md` / `_skill-v2*-changes.md`）保留在源项目 `GL-iNet/others/Translation/`，未随 marketplace 分发。如需翻阅决策细节或就单条决策提出 clinic round 升级，联系 maintainer。
+详细决策审计文档由 maintainer 私存，未随 marketplace 分发。如需翻阅决策细节或就单条决策提出 clinic round 升级，联系 GL.iNet 数据组 maintainer。
 
 If a future translation surfaces a case **not covered** by the decisions above:
 1. Apply closest existing decision and proceed
