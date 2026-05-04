@@ -69,13 +69,24 @@ Read assets/template.html
 - 做柱图 / 折线 / 饼图 / 双 Y 轴混合 / 堆积 → `Read references/charts.md`
 
 ### Step 5：生成目标文件
-产出路径约定：`reports/<报告名>/index.html`（与现有 `reports/` 目录结构保持一致）。
-复制 template.html → 改 title → 改 header → 按章节填充 → 替换所有 `{{占位符}}`。
+
+**产出路径**（按是否需要资源文件分两形态，落在 ticket 根目录）：
+
+| 形态 | 路径 | 何时用 |
+|---|---|---|
+| **单文件**（默认） | `<编号>_<slug>/<编号>_<slug>.html` | 自含报告：内联 CSS + ECharts CDN + 数据写死在 `<script>` 里 |
+| **带资源**（降级） | `<编号>_<slug>/<编号>_<slug>/index.html`（同名子目录）+ 同目录 `assets/`、`data/` | 报告需要拆出大数据 JSON / 多张图片 / 多个 HTML 子页 |
+
+> 放在 ticket **根目录**（不在 `docs/` 下）的语义：这是可对外发的**成品**，与 `docs/` 下的过程材料区分。组员看到 ticket 根有 `.html` 就知道交付物已就绪。
+
+**编号 + slug 来源**：从已有 ticket 目录名读出（ticket-aligner 创建的目录），别让用户重输。如果当前 cwd 没有 ticket 目录，**先停下问**用户是要在哪个 ticket 下出报告——本 skill 不是 ticket 目录的 owner（ticket-aligner 是）。
+
+复制 `assets/template.html` → 改 title → 改 header → 按章节填充 → 替换所有 `{{占位符}}`。
 
 ### Step 6：验证
-- 浏览器打开看一下渲染效果（让用户自己打开，或用 `open reports/<name>/index.html`）
+- 浏览器打开看一下渲染效果（macOS：`open <编号>_<slug>/<编号>_<slug>.html`；带资源版：`open <编号>_<slug>/<编号>_<slug>/index.html`）
 - 检查：动画是否正常、hover 是否有反馈、响应式在窄屏是否换行、图表是否出现
-- 如果是 macOS：`open /Users/yuanzheyi/GL-iNet/Projects/DataTeam/reports/<name>/index.html`
+- 让用户自己也用浏览器打开确认一遍——内联 CSS 的字体回退在不同设备可能差异较大
 
 ---
 
@@ -181,6 +192,6 @@ font-family: 'Plus Jakarta Sans', 'Noto Sans SC', 'PingFang SC',
 
 ## 参考源
 
-- **母版**：`reports/boss_report_2026Q1/index.html`（组内既成事实）
+- **母版**：组内既成事实样例（往届 boss report 等历史报告）
 - **配色出处**：`References/IMG_8521.JPG`（"科研Sci配色 · 黄昏绯景"）
-- **产出惯例**：参考 `reports/` 目录下其他已完成报告的文件夹结构（index.html + assets/ + data/）
+- **产出惯例**：每个 ticket 的报告落在该 ticket 根目录下（`<编号>_<slug>/`），单文件用 `<编号>_<slug>.html`；带资源时进入同名子目录 + `index.html` + `assets/` + `data/`

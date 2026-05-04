@@ -1,7 +1,7 @@
 # 需求 DT-2026-04-28-01 对内执行 Plan
 
 - **ticket 标题**：桌面新系列-Basalt系列BE7200 用户偏好与产品定义
-- **alignment 版本**：v2（基于：alignment_docs/DT-2026-04-28-01/alignment_v2.md）
+- **alignment 版本**：v2（基于：DT-2026-04-28-01_BE7200-User-Research/docs/alignment_docs/alignment_v2.md）
 - **类型分类**：用户研究 + 产品定义
 - **生成时间**：2026-04-29 09:00
 - **基于 capabilities.md 版本**：v0.1
