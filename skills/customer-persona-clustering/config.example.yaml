@@ -1,0 +1,110 @@
+# customer-persona-clustering — 通用配置模板
+# 用户应 cp 一份到自己项目目录改, 不要直接改本文件
+
+# ============ 产品上下文 (必填) ============
+product_name: "通用产品"             # 用于 prompt: e.g. "5G 路由器" / "厨房刀具" / "SaaS 工具"
+product_category: "通用品类"         # 用于 prompt: e.g. "网络设备" / "厨具" / "B2B 软件"
+
+# ============ 输入数据 ============
+input_csv: "./data/reviews.csv"
+text_column: "review_text"           # 必填: 评论正文列名
+optional_columns:                    # 选填: 用于上下文树重建 (Reddit/论坛适用)
+  id: "id"                           # 评论 id
+  parent_id: null                    # 父评论 id (null = 不用上下文树)
+  post_id: null                      # 原帖 id
+  title: null                        # 原帖标题
+
+# ============ 噪声过滤 (可定制) ============
+noise_filters:
+  - type: min_length
+    chars: 20                        # 短于 N 字符的评论扔掉 (实测 30 太严, 会把 "Have you filed a bug report?" 这种 29 字诊断追问也过滤掉)
+  - type: contains
+    patterns:                        # 含这些字符串的扔掉 (典型 automod / boilerplate)
+      - "Thanks for posting"
+      - "Welcome to the subreddit"
+      - "I am a bot"
+  - type: regex
+    patterns: []                     # 进阶: 正则匹配, 默认空
+
+# ============ 输出 ============
+output_dir: "./output"
+
+# ============ Embedding ============
+embedding:
+  provider: "openai"                 # openai / voyage / gemini
+  model: "text-embedding-3-large"    # OpenAI 默认 3072 维 (推荐, 小众画像识别更细)
+  api_key_env: "OPENAI_API_KEY"
+  batch_size: 100
+  max_chars: 2000                    # 单条 persona 截断
+  # voyage 备选: model="voyage-3", api_key_env="VOYAGE_API_KEY", batch_size=15
+  # gemini 备选: model="gemini-embedding-001", api_key_env="GOOGLE_API_KEY", batch_size=30 (免费层有限)
+
+# ============ Persona 生成 (Claude) ============
+persona_generation:
+  llm_provider: "claude_max"         # claude_max (Max 订阅) / anthropic_api (API key)
+  model: "claude-opus-4-7"           # Opus 4.7 给最细 persona; Sonnet 4.6 性价比高
+  effort: "high"                     # low / medium / high / xhigh / max (xhigh 慢但最细)
+  workers: 2                         # 并发数 (Max 订阅 5x 推荐 2)
+  max_chars_post_body: 600           # 上下文里原帖正文截断
+  max_chars_parent: 300              # 上下文里父评论截断
+
+# ============ 聚类参数 ============
+clustering:
+  umap:
+    n_components: 10                 # UMAP 降维维度 (10D 喂 HDBSCAN, 2D 单独存可视化)
+    n_neighbors: 15
+    min_dist: 0.0                    # 0.0 让簇更紧, 利于聚类
+    metric: "cosine"                 # voyage/openai embedding 用 cosine 最自然
+  hdbscan:
+    min_cluster_size: 8              # 关键参数: 8 让 20-30 人小众画像有机会; 默认 15 太保守
+    metric: "euclidean"              # UMAP 后用 euclidean
+
+# ============ Meta 合并 (Ward + 全档 LLM 命名) ============
+# 工作方式: 先 Ward 算全档 k=2..N 切刀, 然后让 LLM 给每档每组业务命名,
+# 父档命名作为 context 注入下一档以保持术语一致性.
+meta_merge:
+  ward:
+    levels: [5, 10, 15, 20]          # report 里高亮详细展开的几档 (其他档只列名字一览)
+    linkage_method: "ward"
+  llm:
+    max_k: null                      # null = 标 k=2..N 全档 (推荐); 设数字 (如 20) 限上限省成本
+    model: "claude-opus-4-7"
+    effort: "high"
+    personas_per_cluster: 3          # 每个 ward 组喂给 LLM 的代表 persona 条数          # 每细簇给 LLM 看几条代表 persona
+
+# ============ 预设 (按品类快速切换) ============
+presets:
+  reddit_router_reviews:
+    product_name: "5G/Wi-Fi 路由器"
+    product_category: "网络设备"
+    text_column: "body"
+    optional_columns:
+      id: "id"
+      parent_id: "parsedParentId"
+      post_id: "parsedPostId"
+    noise_filters:
+      - {type: min_length, chars: 20}
+      - {type: contains, patterns: ["Thanks for posting", "I am a bot"]}
+
+  amazon_kitchen_reviews:
+    product_name: "厨房刀具"
+    product_category: "厨具"
+    text_column: "reviewText"
+    optional_columns:
+      id: "reviewerID"
+    noise_filters:
+      - {type: min_length, chars: 50}     # Amazon 评论一般更长
+      - {type: contains, patterns: ["Five Stars", "One Star"]}  # 标题型评论
+
+  saas_feedback:
+    product_name: "Notion / Slack 类协作工具"
+    product_category: "B2B SaaS"
+    text_column: "feedback_text"
+    optional_columns:
+      id: "ticket_id"
+    noise_filters:
+      - {type: min_length, chars: 40}
+      - {type: contains, patterns: ["Got it, thanks", "Thank you for reaching out"]}
+    # SaaS 反馈适合换更强 prompt 抓"决策者 vs 实施者"维度
+    persona_generation:
+      effort: "xhigh"
