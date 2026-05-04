@@ -14,13 +14,14 @@
 ├── README.md               # 本文档
 ├── config.example.yaml     # 配置模板, 用户 cp 一份改
 ├── lib/
-│   └── pipeline.py         # 一站式 orchestrator (8 个 stage)
+│   ├── pipeline.py         # 一站式 orchestrator (9 个 stage)
+│   └── interactive.py      # Stage 9: 自包含交互可视化 HTML 生成器
 └── prompts/
     ├── persona.md          # Stage 2: 个体 persona 生成 prompt
     └── meta_merge.md       # Stage 6: LLM 概念合并 prompt
 ```
 
-## 8 个流水线阶段
+## 9 个流水线阶段
 
 | Stage | 名字 | 输入 | 输出 | 时间 |
 |---|---|---|---|---|
@@ -32,6 +33,7 @@
 | 6 | meta_llm | clusters.parquet | **meta_ward_labels.json** (全档 LLM 命名 + 父档链) | (N-1) × ~30s Sonnet / ~3min Opus |
 | 7 | visualize | clusters.parquet | dendrogram.png + scatter.png | 秒 |
 | 8 | report | clusters.parquet | report.md (全档汇总 + highlight 详细) | 秒 |
+| **9** | **interactive** | clusters/labels/linkage/umap_nd | **interactive.html** (单文件交互可视化) | 秒 |
 
 ## 快速开始
 
@@ -69,13 +71,14 @@ python3 .../pipeline.py --config x.yaml --stages embed,cluster,meta_ward
 
 | 文件 | 内容 | 用途 |
 |---|---|---|
-| `report.md` | 综合人读报告，全档命名一览 + highlight 详细 | **第一个看的** |
+| **`interactive.html`** | 单文件交互可视化（散点 + 层级树, 鼠标悬浮看详情, 业务术语零门槛） | **产品 / 业务方自助探索** |
+| `report.md` | 综合人读报告，全档命名一览 + highlight 详细 | 数据组第一个看的 |
 | `clusters.parquet` | 每条评论 + persona + 全档 ward_meta_k / llm_label_k 标签 | 下游分析 |
 | `meta_ward_labels.json` | **全档 LLM 命名** + rationale + 父档链 | **PPT / 业务报告核心** |
 | `meta_clusters_ward.csv` | 细簇 → 各档 ward_meta_k 数字 mapping | 选任意 k 切刀 |
 | `meta_llm_raw_k*.txt` | 每档 LLM 原始返回 | debug 用 |
-| `dendrogram.png` | Ward 层级树 | 看为什么这些细簇合并 |
-| `scatter.png` | UMAP 2D 散点（默认 highlight 档着色） | 直观看分布 |
+| `dendrogram.png` | Ward 层级树 | 截图插 PPT |
+| `scatter.png` | UMAP 2D 散点（默认 highlight 档着色） | 截图插 PPT |
 
 ## 全档画像粒度（业务用法）
 
@@ -140,6 +143,7 @@ python3 .../pipeline.py --config x.yaml --stages embed,cluster,meta_ward
 
 - v1.0 (2026-05-04): 首版，含 8 stage + 双合并方案 + 3 个产品预设
 - v2.0 (2026-05-04): 重构为 **Ward 全档 + LLM 逐档命名 + 父档术语注入**。`meta_clusters_llm.json` → `meta_ward_labels.json`，`target_k` → `max_k`，删 ARI 一致性检查（同一棵树无意义）
+- v2.1 (2026-05-04): 新增 **Stage 9 `interactive`** — 自包含交互可视化 HTML（散点 + 层级树, 业务术语 / 鼠标悬浮看原评论 / 2D-3D 切换 / 拖拽旋转），给产品 / 业务方零门槛自助探索；修复 `/review-pr` 揭示的全部 8 个 Critical bug
 
 ## 关联 skill
 

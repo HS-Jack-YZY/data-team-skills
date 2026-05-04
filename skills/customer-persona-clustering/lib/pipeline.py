@@ -968,9 +968,23 @@ def stage_report(cfg: dict, clusters_path: Path, out_dir: Path) -> None:
 
 
 # ============================================================================
+# Stage 9: interactive — 自包含交互 HTML (产品/业务方探索用)
+# ============================================================================
+def stage_interactive(cfg: dict, out_dir: Path) -> Path:
+    print("\n=== Stage 9: 交互可视化 HTML ===")
+    from interactive import build_interactive_html
+    out_path = build_interactive_html(cfg, out_dir)
+    print(f"  ✓ {out_path}  ({out_path.stat().st_size / 1024:.1f} KB)")
+    return out_path
+
+
+# ============================================================================
 # Main orchestrator
 # ============================================================================
-ALL_STAGES = ["load_filter", "persona", "embed", "cluster", "meta_ward", "meta_llm", "visualize", "report"]
+ALL_STAGES = [
+    "load_filter", "persona", "embed", "cluster",
+    "meta_ward", "meta_llm", "visualize", "report", "interactive",
+]
 
 
 def main():
@@ -1013,6 +1027,8 @@ def main():
         stage_visualize(cfg, paths["clusters"], out_dir)
     if "report" in stages:
         stage_report(cfg, paths["clusters"], out_dir)
+    if "interactive" in stages:
+        stage_interactive(cfg, out_dir)
 
     print("\n=== Pipeline 完成 ===")
     print(f"  → {out_dir / 'report.md'}")

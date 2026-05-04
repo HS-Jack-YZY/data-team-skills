@@ -72,8 +72,12 @@ meta_merge:
 5. **Ward 全档**: 在 N 个细簇质心上做 hierarchical, 切 k=2..N 全档 (`meta_clusters_ward.csv`)
 6. **LLM 全档命名**: 顺序遍历 k=2..N, 每档调一次 Claude 命名当前 k 组,
    父档命名注入下一档 context 维持术语一致性 (`meta_ward_labels.json`)
-7. 可视化: dendrogram + UMAP 散点
-8. 综合报告: 全档命名一览表 + highlight 档详细展开
+7. 可视化: dendrogram + UMAP 散点 (静态 PNG)
+8. 综合报告: 全档命名一览表 + highlight 档详细展开 (`report.md`)
+9. **交互可视化** (`interactive.html`): 单文件 HTML (无 CDN 依赖), 给产品/业务方探索:
+   ① 客户地图 (UMAP 散点) — Z 选「无」= 2D, 选维度自动 3D 可拖拽旋转;
+     悬浮任意点显示业务命名 + 原评论
+   ② 客户分群层级树 — 鼠标在树上垂直移动看不同分群粒度对应的命名 + 人数
 
 ```bash
 python3 lib/pipeline.py --config user_config.yaml
@@ -89,10 +93,10 @@ python3 lib/pipeline.py --config user_config.yaml
 
 跑完后告诉用户:
 - 看 `output/report.md` (全档命名一览 + highlight 档详细展开)
+- **`output/interactive.html`** — 在浏览器里打开, 给产品/业务方自助探索 (推荐)
 - 用 `output/clusters.parquet` 做下游分析 (每条 persona 含 `ward_meta_2..N` 和 `llm_label_k2..N` 标签)
 - `output/meta_ward_labels.json` 是 PPT/业务报告核心交付
-- `output/dendrogram.png` 看 Ward 层级树
-- `output/scatter.png` 看 UMAP 散点 (默认 highlight 档着色)
+- `output/dendrogram.png` / `output/scatter.png` 静态图 (适合截屏插 PPT)
 
 强调:
 - **战略级 (k=2/3)** 拿 2-3 名业务总结全市场
@@ -122,6 +126,7 @@ python3 lib/pipeline.py --config user_config.yaml
 - `dendrogram.png` — Ward 层级树
 - `scatter.png` — UMAP 2D 散点 (默认 highlight 档着色)
 - `report.md` — 综合人读报告
+- **`interactive.html`** — 单文件交互可视化 (Stage 9), 浏览器打开即用, 业务术语零技术门槛
 
 ## 配置示例 (按品类)
 
