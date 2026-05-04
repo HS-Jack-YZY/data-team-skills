@@ -46,8 +46,15 @@ Claude will ask for the brief if you didn't provide one, then run preprocess →
 
 ```bash
 SKILL=~/.claude/skills/social-reviews-analyzer
-WD=/path/to/scratch
-mkdir -p $WD
+
+# Default for GL.iNet ticket workflow — auto-locate the ticket folder created by ticket-aligner:
+TICKET_DIR=$(ls -d <编号>_*/ 2>/dev/null | head -n 1)
+WD="$TICKET_DIR/docs/data/scratch"
+
+# Or for ad-hoc analysis without a ticket folder, use any path:
+# WD=/path/to/scratch
+
+mkdir -p "$WD"
 
 # write your brief.json (copy from scripts/brief.example.json)
 $EDITOR $WD/brief.json

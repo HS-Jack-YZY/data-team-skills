@@ -257,7 +257,7 @@
 ```
 - 单元名：章节撰写「{章节名}」
 - 输入：上游统计 / 可视化输出 + 报告骨架
-- 输出产物：reports/<ticket-id>/index.html 的 {章节名} 章节
+- 输出产物：<编号>_<slug>/<编号>_<slug>.html 的 {章节名} 章节（或带 assets 时 <编号>_<slug>/index.html 的 {章节名}）
 - 推荐工具：html-report skill（templates + 组件库）
 - 预计耗时：1.5h / 章节（含图表 + 解读）；整份报告 8h
 - 依赖：P10 / P11 / P12 等分析步骤完成

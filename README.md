@@ -25,6 +25,103 @@ GL.iNet 数据组共用的 Claude Code Skills 与 Commands 合集。
     └── translate-compare.md        多 agent 翻译 + 跨语言一致性协调（v2.1 多 agent 编排）
 ```
 
+## 标准工作流（GL.iNet 数据组）
+
+下面是数据组用本仓库 5 个 skill 处理一个 ticket 的端到端流程。每一步的产出位置都已硬编码进对应 SKILL.md，**无需配置**——目录约定即配置。
+
+### 0. 起点
+
+其他部门提一个 ticket。在数据组 ticket 工作根目录（建议数据组共享的 ticket 工作区）打开 Claude Code。
+
+### 1. 对齐（`/ticket-aligner <编号>` + ticket 内容）
+
+```bash
+/ticket-aligner 66 ./inbox/manual-sft1200-translation.txt
+```
+
+skill 会：
+
+- 自动派生 slug（如 `Manual-SFT1200-Translation-FR-DE-ES-PL`）
+- 创建 ticket 根目录 `66_<slug>/`
+- 把原始 ticket 写到 `66_<slug>/docs/ticket.md`
+- 生成第一版对齐报告 → `66_<slug>/docs/alignment_docs/alignment_v1.md`
+- 在终端输出"四件套"（路径 / 章节五节选 / 组员 SOP / 对齐确认私信）
+
+> **必须**附编号。未附时 skill 会停下问你要——不会自己编。
+
+### 2. 反馈轮次（重复 `/ticket-aligner`）
+
+需求方反馈后再次调用本 skill，会自动在同目录里写出 `alignment_v2.md`、`alignment_v3.md`……版本号 +1，旧版本永远保留（需求方溯源 + 内部审计依据）。
+
+### 3. 拆解（`/ticket-decomposer <编号>`）
+
+```bash
+/ticket-decomposer 66
+```
+
+skill 自动定位最新 `alignment_v{N}.md`（一行 `ls ... | sort -V | tail -1` 解决），产出执行 plan：
+
+```
+66_<slug>/docs/plan.md
+```
+
+### 4. 数据获取与分析（中间步骤）
+
+数据采集、清洗、分析在 `66_<slug>/docs/data/` 下进行。其中：
+
+- **`/social-reviews-analyzer`**：scratch 中间产物（`units.jsonl` / `analyses.jsonl`）放在 `docs/data/scratch/`（建议加进 `.gitignore`），最终样本 CSV 落 `docs/data/<merged>.csv`
+- 其他自定义数据脚本：约定也放在 `docs/data/` 下
+
+### 5. 报告（`/html-report`）
+
+最终 HTML 报告落在 ticket **根目录**（不在 `docs/` 下）：
+
+```
+66_<slug>/66_<slug>.html               # 单文件（默认）
+66_<slug>/66_<slug>/index.html         # 带 assets/data 时降级到同名子目录
+```
+
+放在 ticket 根的语义：**这是可对外发的成品**——和 `docs/` 下的过程材料一眼区分。
+
+### 6. 发布消息（`/delivery-message`）
+
+skill 输出**可直接复制**的钉钉消息正文（对话给文本，复制即发），同时镜像写到 `66_<slug>/docs/delivery.md` 留档。
+
+### 7. 在钉钉上交付
+
+复制 skill 的对话输出，发到对应群。
+
+---
+
+### 一个完成态 ticket 的完整目录长这样
+
+```
+66_Manual-SFT1200-Translation-FR-DE-ES-PL/
+├── docs/                                       ← 过程性文档
+│   ├── ticket.md
+│   ├── alignment_docs/
+│   │   ├── alignment_v1.md
+│   │   ├── alignment_v2.md
+│   │   └── alignment_v3.md
+│   ├── plan.md
+│   ├── data/
+│   │   ├── reddit_merged.csv
+│   │   └── scratch/                            ← gitignored
+│   └── delivery.md
+└── 66_Manual-SFT1200-Translation-FR-DE-ES-PL.html  ← 交付物（在 ticket 根）
+```
+
+整个目录可以独立打包归档——一个 ticket 完成后，这一个文件夹就是它的全部上下文，无跨目录依赖。
+
+### 设计哲学
+
+- **过程 vs 成品 用文件位置区分**：`docs/` 下都是给组内看的中间材料；ticket 根目录下的 `.html` 是可对外发的成品
+- **版本演进 用文件名区分**：alignment 用 `_v1` / `_v2` / `_v3` 后缀，每次反馈轮次保留历史；plan / delivery / report 是当前快照（重写覆盖）
+- **路径约定即配置**：5 个 skill 都按 `<编号>_<slug>/...` 这个模式硬编码路径，不读环境变量、不读配置文件——约定优于配置
+- **一个 ticket 一个 owner**：ticket 目录由 `ticket-aligner` 首次调用时创建；后续 skill 只往已有目录里加文件，**不**自己创建新 ticket 目录骨架
+
+---
+
 ## 安装使用（Claude Code 插件 marketplace 模式）
 
 本仓库同时是一个 **Claude Code 插件 marketplace**——两条命令装完，之后自动更新。

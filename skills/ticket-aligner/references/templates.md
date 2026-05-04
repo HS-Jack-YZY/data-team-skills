@@ -384,7 +384,7 @@ skill **不要**让占位符泄露到最终文档（产物中不应出现 `{...}
 - 第五章有 4 个需要您选 ABC 的点
 - 第六章有 1 项（美区销量外推 → 建议改用美区评论增长率代理估算），请重点看
 烦请**直接在文档里评论或修改**（不要在这边口头反馈）：
-alignment_docs/DT-2026-0427-01/alignment.md
+DT-2026-0427-01_BE10000-EU-Sales-Estimate/docs/alignment_docs/alignment_v1.md
 如 4 天内未反馈，我们将按推荐项默认推进。多谢～
 ```
 
@@ -397,7 +397,7 @@ alignment_docs/DT-2026-0427-01/alignment.md
 - 预计约 5h 完成
 - 第五章有 2 个需要您选 ABC 的点
 烦请**直接在文档里评论或修改**：
-alignment_docs/DT-2026-04-28-02/alignment.md
+DT-2026-04-28-02_USB-Tethering-Compatibility/docs/alignment_docs/alignment_v1.md
 如 1 天内未反馈，我们将按推荐项默认推进。多谢～
 ```
 
