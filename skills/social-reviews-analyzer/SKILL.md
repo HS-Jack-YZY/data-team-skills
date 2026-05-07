@@ -86,12 +86,22 @@ If a CSV does not match any rule, the preprocessor will print a warning and skip
 
 ```bash
 TICKET_DIR=$(ls -d <编号>_*/ 2>/dev/null | head -n 1)
-WORKDIR="$TICKET_DIR/data/scratch"               # intermediate jsonl + logs (gitignored)
-FINAL_CSV="$TICKET_DIR/data/${PRODUCT}_reviews.csv"   # final merged sample
+WORKDIR="$TICKET_DIR/data/scratch"                             # intermediate jsonl + logs (gitignored)
+FINAL_CSV="$TICKET_DIR/data/analyzed/${PRODUCT}_reviews.csv"   # final merged sample (analyzed deliverable)
 mkdir -p "$WORKDIR" "$(dirname "$FINAL_CSV")"
 ```
 
 **Fallback** (no ticket workflow — ad-hoc analysis, e.g. external CSVs you want to triage): use any directory of your choice for `WORKDIR` and any path for the final CSV.
+
+**`data/` 子目录约定**（与 ticket-plan 三层目录约定对齐）：
+
+| 子目录            | 角色                                          | git 跟踪 |
+| ----------------- | --------------------------------------------- | -------- |
+| `data/raw/`       | 原始抓取（本 skill 不写这一层）               | ✅       |
+| `data/analyzed/`  | 分析结果（merged CSV 落这里 ← 本 skill 输出） | ✅       |
+| `data/scratch/`   | 中间产物（units / analyses jsonl + 日志）     | ❌       |
+
+`scratch/` 是 `raw/` `analyzed/` 之外的**第三个并列子目录**，不是 `analyzed/` 的子目录、也不是 `raw/` 的子目录——专门承载流水线中间态，不进 git、不参与对外交付。
 
 **Recommended `.gitignore` entry** for ticket workflow:
 
@@ -123,7 +133,7 @@ python3 ~/.claude/skills/social-reviews-analyzer/scripts/merge_to_csv.py \
   --out "$FINAL_CSV"
 ```
 
-> If the merged CSV exceeds ~50 MB, consider keeping only a head/tail sample (≤ 1000 rows) in `data/` and putting the full CSV on shared storage — `data/` is meant for shareable samples that can travel with the ticket folder, not raw multi-GB dumps.
+> If the merged CSV exceeds ~50 MB, consider keeping only a head/tail sample (≤ 1000 rows) in `data/analyzed/` and putting the full CSV on shared storage — `data/analyzed/` is meant for shareable samples that can travel with the ticket folder, not raw multi-GB dumps.
 
 ### Step 4 — monitor & report
 
