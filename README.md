@@ -19,6 +19,7 @@ GL.iNet 数据组共用的 Claude Code Skills 与 Commands 合集。
 │   ├── delivery-message/           GL.iNet 数据组对外交付的标准发布消息模板
 │   ├── ticket-aligner/             ticket 对外对齐报告生成器
 │   ├── ticket-plan/                对内执行 Plan 生成器（支持 alignment / 直接需求 / 模棱两可三种入口）
+│   ├── reddit-research-scraping/   Reddit + Apify 抓取方法论（关键词 / 社区 / 漏斗诊断 / Apify 配置）—— social-reviews-analyzer 的上游
 │   └── social-reviews-analyzer/    Reddit / Discourse / Amazon 评论 CSV → 用户画像 + 痛点 CSV
 └── commands/
     ├── translate-manual.md         英文 → 德/法/西/波兰语 产品手册翻译（v2.1 单 agent 决策固化）
@@ -27,7 +28,7 @@ GL.iNet 数据组共用的 Claude Code Skills 与 Commands 合集。
 
 ## 标准工作流（GL.iNet 数据组）
 
-下面是数据组用本仓库 5 个 skill 处理一个 ticket 的端到端流程。每一步的产出位置都已硬编码进对应 SKILL.md，**无需配置**——目录约定即配置。
+下面是数据组用本仓库 6 个 skill 处理一个 ticket 的端到端流程。每一步的产出位置都已硬编码进对应 SKILL.md，**无需配置**——目录约定即配置。
 
 ### 0. 起点
 
@@ -82,7 +83,8 @@ skill 三模式自适应：
 
 数据采集、清洗、分析在 `66_<slug>/docs/data/` 下进行。其中：
 
-- **`/social-reviews-analyzer`**：scratch 中间产物（`units.jsonl` / `analyses.jsonl`）放在 `docs/data/scratch/`（建议加进 `.gitignore`），最终样本 CSV 落 `docs/data/<merged>.csv`
+- **`reddit-research-scraping`**（数据采集上游）：当数据源是 Reddit + Apify 时,这个 skill 提供关键词 / 社区 / 漏斗诊断 / Apify 配置的方法论。原始 JSON / CSV 落 `docs/data/raw/`,跑完后交给下游
+- **`/social-reviews-analyzer`**（语义分析）：scratch 中间产物（`units.jsonl` / `analyses.jsonl`）放在 `docs/data/scratch/`（建议加进 `.gitignore`），最终样本 CSV 落 `docs/data/<merged>.csv`
 - 其他自定义数据脚本：约定也放在 `docs/data/` 下
 
 ### 5. 报告（`/html-report`）

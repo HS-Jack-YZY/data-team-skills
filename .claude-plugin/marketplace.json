@@ -19,6 +19,7 @@
         "./skills/delivery-message",
         "./skills/ticket-aligner",
         "./skills/ticket-plan",
+        "./skills/reddit-research-scraping",
         "./skills/social-reviews-analyzer"
       ]
     }
