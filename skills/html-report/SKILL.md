@@ -70,14 +70,14 @@ Read assets/template.html
 
 ### Step 5：生成目标文件
 
-**产出路径**（按是否需要资源文件分两形态，落在 ticket 根目录）：
+**产出路径**（按是否需要资源文件分两形态，落在交付包同名子目录）：
 
 | 形态 | 路径 | 何时用 |
 |---|---|---|
 | **单文件**（默认） | `<编号>_<slug>/<编号>_<slug>/<编号>_<slug>.html` | 自含报告：内联 CSS + ECharts CDN + 数据写死在 `<script>` 里 |
 | **带资源**（降级） | `<编号>_<slug>/<编号>_<slug>/index.html` + 同目录 `assets/`、`data/` | 报告需要拆出大数据 JSON / 多张图片 / 多个 HTML 子页 |
 
-> 落在 ticket 根下的**同名子目录**（`<编号>_<slug>/<编号>_<slug>/`）的语义：这是可对外发的**交付包**——单文件 HTML、带资源版的 `assets/` `data/`、PDF / xlsx / 图片附件都打到这一个子目录里，组员要交付时直接 zip 这个子目录即可，不会把 ticket 根的 `docs/`（过程材料）和 `data/`（分析数据）误打进去。三层关注点分离：`docs/` = 给人读、`data/` = 给机器分析、`<编号>_<slug>/<编号>_<slug>/` = 对外交付。
+> **完整路径约定见 [`../ticket-plan/references/path_conventions.md`](../ticket-plan/references/path_conventions.md)**（含三层目录骨架、`data/` 三类子目录、各 skill 角色映射）。本 skill 在交付包同名子目录 `<root>/<root>/` 下落盘，这是对外可发的「交付包」边界——组员要交付时直接 zip 这个子目录即可，不会把 ticket 根的 `docs/` 过程材料和 `data/` 分析数据误打进去。
 
 **编号 + slug 来源**：从已有 ticket 目录名读出（ticket-aligner 创建的目录），别让用户重输。如果当前 cwd 没有 ticket 目录，**先停下问**用户是要在哪个 ticket 下出报告——本 skill 不是 ticket 目录的 owner（ticket-aligner 是）。
 

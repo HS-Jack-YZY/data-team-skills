@@ -103,6 +103,8 @@ mkdir -p "$WORKDIR" "$(dirname "$FINAL_CSV")"
 
 `scratch/` 是 `raw/` `analyzed/` 之外的**第三个并列子目录**，不是 `analyzed/` 的子目录、也不是 `raw/` 的子目录——专门承载流水线中间态，不进 git、不参与对外交付。
 
+> **完整路径约定见 [`../ticket-plan/references/path_conventions.md`](../ticket-plan/references/path_conventions.md)**（含 mermaid 流程图、文件命名规则、6 类反模式、各 skill 角色映射）。
+
 **Recommended `.gitignore` entry** for ticket workflow:
 
 ```

@@ -291,23 +291,19 @@ skills/ticket-aligner/
 
 落盘根目录约定（ticket 目录由本 skill 在首次调用时创建；后续 skill 都往同一目录里加文件）：
 
+> **完整路径约定见 [`../ticket-plan/references/path_conventions.md`](../ticket-plan/references/path_conventions.md)**（含 mermaid 流程图、`data/` 三类子目录、文件命名规则、6 类反模式、各 skill 角色映射）。本节只列与 ticket-aligner 直接相关的位置（aligner 在 ticket 根 + `docs/ticket.md` + `docs/alignment_docs/` 落盘）：
+
 ```
-<编号>_<slug>/                                  # ticket 根，由本 skill 首次调用时创建
-├── docs/                                       # 过程性文档（人类阅读）
-│   ├── ticket.md                               # 原 ticket 归档（本 skill 落盘）
-│   ├── alignment_docs/
-│   │   ├── alignment_v1.md                     # 本 skill 首次输出
-│   │   ├── alignment_v2.md                     # 反馈后再次调用本 skill 产出
-│   │   └── alignment_v{N}.md                   # 后续反馈轮次
-│   ├── plan.md                                 # ticket-plan 输出
-│   └── delivery.md                             # delivery-message 镜像归档
-├── data/                                       # 数据资产（机器分析；social-reviews-analyzer 等写入）
-└── <编号>_<slug>/                              # 交付包子目录（同名）
-    ├── <编号>_<slug>.html                      # html-report 单文件版（默认）
-    └── ...                                     # 其他可交付物（PDF / xlsx / assets/）
+<编号>_<slug>/                                  # ticket 根（本 skill 首次调用时创建）
+└── docs/
+    ├── ticket.md                               # 原 ticket 归档（本 skill 落盘）
+    └── alignment_docs/
+        ├── alignment_v1.md                     # 首次输出
+        ├── alignment_v2.md                     # 反馈后再次调用本 skill 产出
+        └── alignment_v{N}.md                   # 后续反馈轮次
 ```
 
-> 三层关注点分离：`docs/` = 给人读的过程文档（plan / 对齐稿 / 交付消息归档）、`data/` = 给机器分析的数据资产（原始抓取 / 中间态）、`<编号>_<slug>/`（同名子目录）= 对外交付包（HTML + PDF + 附件）。组员要交付时直接 zip 同名子目录即可。
+> 同根 ticket 单根下的其他子目录（`data/`、同名子目录交付包）由下游 skill 自行落盘——本 skill 创建 ticket 根即可，不预先创建空的下游目录骨架。
 
 ---
 

@@ -281,6 +281,8 @@ fi
 
 **附件目录约定**：所有对外交付物（HTML 报告、PDF、xlsx、附件 CSV / 图片 / assets）统一从 ticket 根下的**同名子目录** `<编号>_<slug>/<编号>_<slug>/` 拉取——这是 html-report 等下游 skill 的统一落点，作为「交付包」边界。组员发消息前 zip 这个同名子目录即可（不会把 ticket 根的 `docs/` 过程材料和 `data/` 分析数据误打进交付包）。本 skill 只镜像消息文本到 `docs/delivery.md` 做归档，**不**自动打包附件——zip 由组员手工触发。
 
+> **完整路径约定见 [`../ticket-plan/references/path_conventions.md`](../ticket-plan/references/path_conventions.md)**（含三层目录骨架、各 skill 角色映射）。
+
 ---
 
 ## 英文版模板（海外申请人触发）
