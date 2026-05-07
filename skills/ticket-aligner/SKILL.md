@@ -293,19 +293,21 @@ skills/ticket-aligner/
 
 ```
 <编号>_<slug>/                                  # ticket 根，由本 skill 首次调用时创建
-├── docs/                                       # 过程性文档
+├── docs/                                       # 过程性文档（人类阅读）
 │   ├── ticket.md                               # 原 ticket 归档（本 skill 落盘）
 │   ├── alignment_docs/
 │   │   ├── alignment_v1.md                     # 本 skill 首次输出
 │   │   ├── alignment_v2.md                     # 反馈后再次调用本 skill 产出
 │   │   └── alignment_v{N}.md                   # 后续反馈轮次
 │   ├── plan.md                                 # ticket-plan 输出
-│   ├── data/                                   # 中间数据（social-reviews-analyzer 等写入）
 │   └── delivery.md                             # delivery-message 镜像归档
-└── <编号>_<slug>.html                          # html-report 最终成品（在 ticket 根，不在 docs 下）
+├── data/                                       # 数据资产（机器分析；social-reviews-analyzer 等写入）
+└── <编号>_<slug>/                              # 交付包子目录（同名）
+    ├── <编号>_<slug>.html                      # html-report 单文件版（默认）
+    └── ...                                     # 其他可交付物（PDF / xlsx / assets/）
 ```
 
-> 把"过程文档"放 `docs/` 下、"对外成品"（html）放 ticket 根，是数据组的工作流约定——一眼区分中间产物和可对外发的交付物。
+> 三层关注点分离：`docs/` = 给人读的过程文档（plan / 对齐稿 / 交付消息归档）、`data/` = 给机器分析的数据资产（原始抓取 / 中间态）、`<编号>_<slug>/`（同名子目录）= 对外交付包（HTML + PDF + 附件）。组员要交付时直接 zip 同名子目录即可。
 
 ---
 
