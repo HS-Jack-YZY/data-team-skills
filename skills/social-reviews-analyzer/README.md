@@ -49,7 +49,7 @@ SKILL=~/.claude/skills/social-reviews-analyzer
 
 # Default for GL.iNet ticket workflow — auto-locate the ticket folder created by ticket-aligner:
 TICKET_DIR=$(ls -d <编号>_*/ 2>/dev/null | head -n 1)
-WD="$TICKET_DIR/docs/data/scratch"
+WD="$TICKET_DIR/data/scratch"
 
 # Or for ad-hoc analysis without a ticket folder, use any path:
 # WD=/path/to/scratch

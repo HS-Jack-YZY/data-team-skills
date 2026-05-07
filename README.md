@@ -80,21 +80,21 @@ skill 三模式自适应：
 
 ### 4. 数据获取与分析（中间步骤）
 
-数据采集、清洗、分析在 `66_<slug>/docs/data/` 下进行。其中：
+数据采集、清洗、分析在 `66_<slug>/data/` 下进行。其中：
 
-- **`/social-reviews-analyzer`**：scratch 中间产物（`units.jsonl` / `analyses.jsonl`）放在 `docs/data/scratch/`（建议加进 `.gitignore`），最终样本 CSV 落 `docs/data/<merged>.csv`
-- 其他自定义数据脚本：约定也放在 `docs/data/` 下
+- **`/social-reviews-analyzer`**：scratch 中间产物（`units.jsonl` / `analyses.jsonl`）放在 `data/scratch/`（建议加进 `.gitignore`），最终样本 CSV 落 `data/<merged>.csv`
+- 其他自定义数据脚本：约定也放在 `data/` 下
 
 ### 5. 报告（`/html-report`）
 
-最终 HTML 报告落在 ticket **根目录**（不在 `docs/` 下）：
+最终 HTML 报告落在 ticket 根下的**同名子目录**（`66_<slug>/66_<slug>/`，作为"交付包"边界）：
 
 ```
-66_<slug>/66_<slug>.html               # 单文件（默认）
-66_<slug>/66_<slug>/index.html         # 带 assets/data 时降级到同名子目录
+66_<slug>/66_<slug>/66_<slug>.html     # 单文件（默认）
+66_<slug>/66_<slug>/index.html         # 带 assets/data 时改用 index.html 命名
 ```
 
-放在 ticket 根的语义：**这是可对外发的成品**——和 `docs/` 下的过程材料一眼区分。
+放在同名子目录的语义：**这是可对外发的交付包**——HTML + PDF + assets 都打到这一个子目录里，组员要交付时直接 zip 即可，不会把 `docs/`（过程材料）和 `data/`（分析数据）误打进去。
 
 ### 6. 发布消息（`/delivery-message`）
 
