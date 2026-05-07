@@ -78,6 +78,8 @@ skill 三模式自适应：
 <编号>_<slug>/docs/plan.md
 ```
 
+> **路径约定单一来源**：完整目录结构、mermaid、`data/` 三类子目录（raw / analyzed / scratch）、文件命名规则、6 类反模式、各 skill 角色映射，统一定义在 [`skills/ticket-plan/references/path_conventions.md`](skills/ticket-plan/references/path_conventions.md)。下面 §4-§7 各章节只列与该 skill 直接相关的位置约定，细节追溯到这一份。
+
 ### 4. 数据获取与分析（中间步骤）
 
 数据采集、清洗、分析在 `66_<slug>/data/` 下进行。其中：
