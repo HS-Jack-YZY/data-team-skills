@@ -21,6 +21,7 @@ GL.iNet 数据组共用的 Claude Code Skills 与 Commands 合集。
 │   ├── ticket-plan/                对内执行 Plan 生成器（支持 alignment / 直接需求 / 模棱两可三种入口）
 │   └── social-reviews-analyzer/    Reddit / Discourse / Amazon 评论 CSV → 用户画像 + 痛点 CSV
 └── commands/
+    ├── manual-proofread.md         英文产品手册校对器（5-pass + markdown diff 标注版 + 干净交付版；translate-manual 的可选上游）
     ├── translate-manual.md         英文 → 德/法/西/波兰语 产品手册翻译（v2.1 单 agent 决策固化）
     └── translate-compare.md        多 agent 翻译 + 跨语言一致性协调（v2.1 多 agent 编排）
 ```
